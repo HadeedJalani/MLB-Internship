@@ -1,0 +1,22 @@
+{
+    "books": [
+        {
+            "book_id": 1,
+            "title": "Python Basics",
+            "author": "Hadeed Jalani",
+            "available": true
+        },
+        {
+            "book_id": 2,
+            "title": "Data Structures",
+            "author": "Asnah Raouf",
+            "available": true
+        },
+        {
+            "book_id": 3,
+            "title": "OOP",
+            "author": "LORDKNIGHT",
+            "available": true
+        }
+    ]
+}

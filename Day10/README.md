@@ -207,6 +207,7 @@ py -m streamlit run streamlit_app.py
 
 ```
 https://mlb-internship-4ig5k6ykfappvtpkmjz7t6j.streamlit.app/
+```
 ---
 
 # 💻 GitHub Repository

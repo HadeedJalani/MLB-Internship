@@ -206,11 +206,7 @@ py -m streamlit run streamlit_app.py
 **Public App Link:**
 
 ```
-https://your-streamlit-app.streamlit.app
-```
-
-*(Replace with your deployed Streamlit URL.)*
-
+https://mlb-internship-4ig5k6ykfappvtpkmjz7t6j.streamlit.app/
 ---
 
 # 💻 GitHub Repository

@@ -35,9 +35,18 @@ st.set_page_config(
 # LOAD MODEL
 # --------------------------------------------------
 
-model = joblib.load("logistic_regression_model.pkl")
-scaler = joblib.load("scaler.pkl")
+import os
+import joblib
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+model = joblib.load(
+    os.path.join(BASE_DIR, "logistic_regression_model.pkl")
+)
+
+scaler = joblib.load(
+    os.path.join(BASE_DIR, "scaler.pkl")
+)
 # --------------------------------------------------
 # LOAD DATASET
 # --------------------------------------------------

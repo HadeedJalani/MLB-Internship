@@ -9,7 +9,7 @@ An interactive Machine Learning project demonstrating **Unsupervised Learning** 
 ## 🚀 Live Demo
 
 🌐 **Streamlit App:**  
-YOUR_STREAMLIT_LINK
+https://mlb-internship-xpcpthicmu4axlhmgjanag.streamlit.app/
 
 📂 **GitHub Repository:**  
 https://github.com/HadeedJalani/MLB-Internship
@@ -193,7 +193,7 @@ The project automatically generates:
 
 ### 🌐 Live Streamlit Application
 
-YOUR_STREAMLIT_LINK
+https://mlb-internship-xpcpthicmu4axlhmgjanag.streamlit.app/
 
 ### 💻 GitHub Repository
 

@@ -1,4 +1,9 @@
-venv/
+# Day 14 Dataset
+Day14/dataset/
+
+# Models
+*.h5
+
+# Python cache
 __pycache__/
 *.pyc
-.vscode/

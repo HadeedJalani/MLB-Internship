@@ -1,0 +1,8 @@
+streamlit
+tensorflow==2.19.0
+numpy
+pandas
+matplotlib
+plotly
+pillow
+scikit-learn

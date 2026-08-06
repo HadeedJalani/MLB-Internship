@@ -204,7 +204,8 @@ During experimentation:
 File:
 
 ```
-streamlit_app.py
+[streamlit_app.py]
+https://mlb-internship-amnhhdcmfxel5bxawmkyfu.streamlit.app/
 ```
 
 The project includes an interactive Streamlit application for real-time object detection.

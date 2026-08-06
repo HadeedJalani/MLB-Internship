@@ -258,12 +258,6 @@ Through this project, the following concepts were explored:
 
 **Hadeed Jalani**
 
-BS Computer Science
-
-University of Lahore
-
-MLBench Summer Internship – Day 14
-
 ---
 
 # ⭐ Acknowledgements

@@ -9,10 +9,7 @@ __pycache__/
 venv/
 env/
 
-# YOLO model weights & run outputs
-*.pt
-runs/
-output_images/
+
 
 # Media output files
 *.mp4
@@ -27,3 +24,23 @@ output_images/
 # System files
 .DS_Store
 Thumbs.db
+
+# YOLO model
+Day15/yolov8n.pt
+
+# YOLO model
+yolov8n.pt
+
+# Dataset
+Day15/dataset/
+
+# YOLO prediction folders
+Day15/runs/
+
+# Generated outputs
+Day15/output_images/
+
+# Temporary files
+*.mp4
+*.avi
+*.mov

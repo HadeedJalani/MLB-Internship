@@ -1,19 +1,29 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
+# Virtual Environments
 .venv/
 venv/
 env/
 
+# YOLO model weights & run outputs
+*.pt
 runs/
 output_images/
 
+# Media output files
 *.mp4
 *.avi
+*.jpg
+*.jpeg
+*.png
 
-.streamlit/
+# Streamlit secrets (keep config.toml visible for deployment settings)
+.streamlit/secrets.toml
 
+# System files
 .DS_Store
 Thumbs.db

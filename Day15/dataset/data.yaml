@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 6
+names: ['bike', 'helmet', 'lisc', 'no_helmet', 'noise', 'rider']
+
+roboflow:
+  workspace: helmet-detection-xy5ky
+  project: helmet-htftb
+  version: 9
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/helmet-detection-xy5ky/helmet-htftb/dataset/9

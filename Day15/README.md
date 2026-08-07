@@ -1,361 +1,260 @@
-# Day 15 — Object Detection with YOLOv8 🚀
+Day 16 - OpenCV Fundamentals & Image Processing Toolkit 🖼️
 
-![Python](https://img.shields.io/badge/Python-3.x-blue)
-![YOLO](https://img.shields.io/badge/Model-YOLOv8-green)
-![Streamlit](https://img.shields.io/badge/Deployment-Streamlit-red)
 
-Part of the **MLBench Summer Internship Program**.
 
-This module focuses on the fundamentals of **Computer Vision Object Detection**, performing inference using pretrained YOLOv8 models, analyzing detection results, and building an interactive Streamlit-based detection dashboard.
 
----
 
-# 📌 Overview
+Part of the MLBench Summer Internship Program.
 
-| Task       | Object Detection using YOLOv8                   |
-| ---------- | ----------------------------------------------- |
-| Dataset    | Helmet Detection Dataset — Roboflow Universe    |
-| Model Used | YOLOv8 Nano (`yolov8n.pt`)                      |
-| Framework  | Ultralytics YOLO                                |
-| Input      | Images and Videos                               |
-| Output     | Bounding boxes, class labels, confidence scores |
-| Deployment | Streamlit Detection Dashboard                   |
+This module focuses on the fundamentals of OpenCV, exploring how digital images are represented and manipulated through various image processing operations while building an interactive Image Processing Toolkit using Streamlit.
 
----
+📌 Overview
+Task	Image Processing Toolkit using OpenCV
+Library	OpenCV (cv2)
+Language	Python
+Framework	Streamlit
+Input	User Uploaded Images
+Output	Processed Images
+Deployment	Streamlit Image Processing Toolkit
+🧠 Concepts Covered
+What is OpenCV?
 
-# 🧠 Concepts Covered
+OpenCV (Open Source Computer Vision Library) is one of the world's most widely used computer vision libraries. It provides hundreds of optimized functions for image processing, video analysis, feature extraction, machine learning, and real-time computer vision applications.
 
-## Object Detection vs Image Classification
+OpenCV is commonly used in:
 
-| Image Classification                        | Object Detection                               |
-| ------------------------------------------- | ---------------------------------------------- |
-| Predicts a single class for an entire image | Detects multiple objects inside an image       |
-| Does not provide object location            | Provides object locations using bounding boxes |
-| Output: Class + confidence                  | Output: Class + confidence + coordinates       |
+Image Processing
+Face Recognition
+Medical Imaging
+Robotics
+Autonomous Vehicles
+Industrial Inspection
+🖼️ BGR vs RGB
 
-Example:
+Digital images store color information using three channels.
 
-**Classification:**
+BGR	RGB
+Blue → Green → Red	Red → Green → Blue
+Default color format used by OpenCV	Standard format used by Pillow and Matplotlib
+Optimized for OpenCV processing	Better suited for visualization
 
-> "This image contains a helmet"
+Since OpenCV loads images in BGR, converting them to RGB is necessary before displaying them with visualization libraries.
 
-**Object Detection:**
+⚫ What are Grayscale Images?
 
-> "Helmet detected at this location with 92% confidence"
+A grayscale image contains only one intensity channel instead of three color channels.
 
----
+Each pixel stores brightness values ranging from:
 
-# 🔍 What is Object Detection?
+0   → Black
+255 → White
 
-Object detection is a computer vision task that identifies objects present in an image and determines their exact locations.
+Grayscale images are widely used because they:
 
-A detection model produces:
+Reduce computational complexity
+Simplify image analysis
+Improve edge detection
+Enhance feature extraction
+Reduce storage requirements
+📂 OpenCV Practice Programs
 
-* Object class
-* Confidence score
-* Bounding box coordinates
+The project contains several standalone programs demonstrating OpenCV fundamentals.
 
-This allows applications such as:
+1️⃣ OpenCV Fundamentals
 
-* Safety monitoring
-* Autonomous vehicles
-* Surveillance systems
-* Industrial automation
+File
 
----
-
-# 🤖 What is YOLO?
-
-YOLO (**You Only Look Once**) is a real-time object detection algorithm that performs detection in a single forward pass through a neural network.
-
-Unlike traditional two-stage detectors, YOLO directly predicts:
-
-* Bounding boxes
-* Object classes
-* Confidence probabilities
-
-This makes YOLO highly suitable for:
-
-* Real-time image detection
-* Video processing
-* Edge devices
-
----
-
-# 📂 Dataset
-
-## Helmet Detection Dataset
-
-**Source:** Roboflow Universe
-
-Dataset format:
-
-* YOLO format
-* Images with annotation labels
-* Train / Validation / Test split
-
-The dataset contains images used for helmet detection and object detection experimentation.
-
-The dataset is intentionally excluded from GitHub because of its large size.
-
----
-
-# 🤖 Model Used
-
-## YOLOv8 Nano (`yolov8n.pt`)
-
-The project uses a pretrained YOLOv8 Nano model from Ultralytics.
-
-Reasons for selecting YOLOv8 Nano:
-
-* Lightweight architecture
-* Fast inference speed
-* Suitable for real-time applications
-* Lower computational requirements
-
-The model automatically downloads the pretrained weights during execution if they are not available locally.
-
----
-
-# 🔎 Detection Pipeline
-
-The project contains two main detection implementations.
-
----
-
-# 1️⃣ YOLO Practice Script
-
-File:
-
-```
-yolo_practice.py
-```
-
-This script demonstrates the fundamentals of YOLO inference.
+opencv_fundamentals.py
 
 Features:
 
-✅ Load pretrained YOLOv8 model
-✅ Perform single image detection
-✅ Perform multiple image detection
-✅ Display confidence scores
-✅ Extract bounding boxes
-✅ Display detected class labels
-✅ Save prediction results
+Read images
+Display image dimensions
+Display image channels
+Display file size
+Convert BGR → RGB
+Convert to Grayscale
+Save processed images
+2️⃣ Basic Image Operations
 
----
+File
 
-# 2️⃣ Helmet Detection System
+basic_image_operations.py
 
-File:
+Implemented operations:
 
-```
-object_detection.py
-```
+Resize images
+Crop images
+Rotate images
+Flip horizontally
+Flip vertically
+Save processed outputs
+3️⃣ Drawing Shapes
 
-This implements the complete object detection workflow.
+File
 
-## Pipeline:
+drawing_shapes.py
 
-### Dataset Loading
+Using OpenCV drawing functions:
 
-Images are loaded from the Helmet Detection dataset.
+Rectangle
+Circle
+Line
+Polygon
+Custom Text (Name & Date)
 
-### Model Inference
+All generated images are automatically saved inside the drawings folder.
 
-YOLOv8 processes images and predicts:
+🛠️ Mini Project — Image Processing Toolkit
 
-* Objects
-* Locations
-* Confidence scores
+File
 
-### Visualization
+image_processing_toolkit.py
 
-Generated outputs include:
+This project combines all OpenCV operations into a reusable menu-driven toolkit.
 
-* Bounding boxes
-* Class names
-* Confidence values
+Users can:
 
-### Result Analysis
+Load an image
+Convert to grayscale
+Resize image
+Rotate image
+Flip image
+Crop image
+Draw shapes
+Add custom text
+Save processed image
+🌐 Streamlit Image Processing Toolkit
 
-The system generates detection summaries including:
+File
 
-* Number of detected objects
-* Detected classes
-* Confidence information
+streamlit_app.py
 
----
+Live Application
 
-# 📊 Observations
+https://mlb-internship-iofdnxjvjdatkpvbmofjjd.streamlit.app/
+
+The project includes an interactive Streamlit application where users can upload an image and perform various OpenCV operations directly in the browser.
+
+🚀 Streamlit Features
+Image Upload
+
+Supported formats:
+
+JPG
+JPEG
+PNG
+BMP
+Image Processing Operations
+
+Users can perform:
+
+Convert to Grayscale
+Resize Image
+Rotate Image
+Flip Horizontally
+Flip Vertically
+Crop Image
+Drawing Tools
+
+Interactive drawing features include:
+
+Rectangle
+Circle
+Line
+Polygon
+Custom Text
+Color Picker
+Thickness Slider
+Undo Last Drawing
+Export
+
+Users can:
+
+Preview processed image
+Download processed image
+📊 OpenCV Functions Used
+
+The following OpenCV functions were implemented throughout the project:
+
+cv2.imread()
+cv2.imwrite()
+cv2.cvtColor()
+cv2.resize()
+cv2.rotate()
+cv2.flip()
+cv2.rectangle()
+cv2.circle()
+cv2.line()
+cv2.polylines()
+cv2.putText()
+📚 Observations
 
 During experimentation:
 
-* YOLOv8 successfully detects objects present in the image based on its learned classes.
-* Detection confidence depends on image quality, lighting conditions, object visibility, and size.
-* Clear and centered objects generally produce higher confidence scores.
-* Small, partially visible, or blurred objects may produce lower confidence predictions.
-* Increasing model size can improve accuracy but increases computational cost.
-
----
-
-# 🌐 Streamlit Detection Dashboard
-
-File:
-
-```
-[streamlit_app.py]
-https://mlb-internship-amnhhdcmfxel5bxawmkyfu.streamlit.app/
-```
-
-The project includes an interactive Streamlit application for real-time object detection.
-
----
-
-# 🚀 Dashboard Features
-
-## Image Detection
-
-Users can:
-
-✅ Upload an image
-✅ Run YOLO detection
-✅ View annotated output
-✅ Download processed image
-
----
-
-## Video Detection
-
-Users can:
-
-✅ Upload video files
-✅ Perform frame-by-frame detection
-✅ Generate processed video output
-✅ Download detected video
-
----
-
-## Analytics Dashboard
-
-The application provides:
-
-* Total detected objects
-* Object class distribution
-* Confidence analysis
-* Detection summaries
-* CSV export functionality
-
----
-
-## Additional Features
-
-The application also includes:
-
-✅ Model information section
-✅ Project description
-✅ Detection statistics
-✅ Download options
-
----
-
-# 🗂️ Project Structure
-
-```
-Day15/
+OpenCV reads images using the BGR color format.
+RGB conversion is required for correct visualization outside OpenCV.
+Grayscale images simplify processing while preserving essential structural information.
+Image resizing changes dimensions without affecting the original image.
+Cropping allows extraction of regions of interest.
+Rotation and flipping efficiently change image orientation.
+Drawing functions make it easy to annotate images for visualization.
+Interactive controls significantly improve usability for image editing.
+🗂️ Project Structure
+Day16/
 │
-├── yolo_practice.py
-│
-├── object_detection.py
-│
+├── opencv_fundamentals.py
+├── basic_image_operations.py
+├── drawing_shapes.py
+├── image_processing_toolkit.py
 ├── streamlit_app.py
-│
 ├── requirements.txt
-│
 ├── README.md
 │
-├── sample_input_images/
+├── input_images/
 │
 ├── output_images/
 │
-├── dataset/              # Ignored by Git
-│
-├── yolov8n.pt            # Ignored by Git
-│
-└── runs/                 # Ignored by Git
-```
-
----
-
-# ⚙️ Installation & Usage
-
-## Install Dependencies
-
-```bash
+└── screen_recording.mp4
+⚙️ Installation & Usage
+Install Dependencies
 pip install -r requirements.txt
-```
-
----
-
-## Run YOLO Practice
-
-```bash
-python yolo_practice.py
-```
-
----
-
-## Run Object Detection Pipeline
-
-```bash
-python object_detection.py
-```
-
----
-
-## Launch Streamlit Dashboard
-
-```bash
+Run OpenCV Fundamentals
+python opencv_fundamentals.py
+Run Basic Image Operations
+python basic_image_operations.py
+Run Drawing Shapes
+python drawing_shapes.py
+Run Image Processing Toolkit
+python image_processing_toolkit.py
+Launch Streamlit Application
 streamlit run streamlit_app.py
-```
+🌍 Deployment
+GitHub Repository
 
----
+https://github.com/HadeedJalani/MLB-Internship/tree/main/Day16
 
-# 🔐 GitHub Management
+Streamlit Application
 
-Large files are excluded using `.gitignore`.
+https://mlb-internship-iofdnxjvjdatkpvbmofjjd.streamlit.app/
 
-Excluded files:
-
-```
-dataset/
-yolov8n.pt
-runs/
-output_images/
-```
-
-This keeps the repository lightweight and deployment-friendly.
-
----
-
-# 📚 Learning Outcomes
+📚 Learning Outcomes
 
 Through this project, I learned:
 
-* Fundamentals of object detection
-* Difference between classification and detection
-* YOLOv8 architecture and inference workflow
-* Bounding box prediction
-* Confidence score interpretation
-* Dataset handling for computer vision
-* Building ML-powered Streamlit applications
-* Deploying computer vision solutions
+Fundamentals of OpenCV
+Digital image representation
+Difference between BGR and RGB
+Grayscale image processing
+Image resizing, cropping, rotation, and flipping
+Drawing geometric shapes using OpenCV
+Building reusable image processing functions
+Developing an interactive Streamlit application
+Deploying OpenCV applications on Streamlit Cloud
+👨‍💻 Author
 
----
-
-# 👨‍💻 Author
-
-**Hadeed Jalani**
+Hadeed Jalani
 
 BS Computer Science
+
 MLBench Summer Internship

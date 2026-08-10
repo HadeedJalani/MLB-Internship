@@ -7,3 +7,8 @@ Day14/dataset/
 # Python cache
 __pycache__/
 *.pyc
+
+
+# Day 17 images
+Day17/input_images/
+Day17/output_images/

@@ -1,139 +1,163 @@
-# Day 16 – OpenCV Fundamentals & Basic Image Processing
+# Day 16 — OpenCV Fundamentals & Image Processing Toolkit 🖼️
 
-## Project Overview
+![Python](https://img.shields.io/badge/Python-3.x-blue)
+![OpenCV](https://img.shields.io/badge/OpenCV-Image%20Processing-green)
+![Streamlit](https://img.shields.io/badge/Deployment-Streamlit-red)
 
-This project was completed as part of the **MLB Summer Internship – Day 16**. The objective was to understand the fundamentals of OpenCV and build a reusable Image Processing Toolkit capable of performing common image manipulation tasks through both Python scripts and a Streamlit web application.
+Part of the **MLBench Summer Internship Program**.
 
-The application allows users to upload an image, apply different image processing operations, visualize the results instantly, and download the processed image.
-
----
-
-# Objectives
-
-- Understand how images are represented in OpenCV.
-- Learn basic image processing techniques.
-- Build reusable image processing functions.
-- Create an interactive Streamlit application.
-- Organize outputs in a structured project.
+This project focuses on the fundamentals of **OpenCV**, learning how digital images are represented and manipulated using common image processing techniques. It also includes an interactive **Image Processing Toolkit** built with Streamlit that allows users to upload an image and apply various transformations in real time.
 
 ---
 
-# Project Structure
+# 📌 Overview
 
-```
-Day16/
-│
-├── input_images/
-│   ├── landscape.jpg
-│   ├── person.jpg
-│   ├── vehicle.jpg
-│   ├── document.jpg
-│   └── object.jpg
-│
-├── output_images/
-│   ├── grayscale/
-│   ├── resized/
-│   ├── cropped/
-│   ├── rotated/
-│   ├── flipped/
-│   ├── drawings/
-│   └── toolkit_outputs/
-│
-├── opencv_fundamentals.py
-├── basic_image_operations.py
-├── drawing_shapes.py
-├── image_processing_toolkit.py
-├── streamlit_app.py
-├── requirements.txt
-└── README.md
-```
+| Task | Image Processing Toolkit using OpenCV |
+|------|----------------------------------------|
+| Library | OpenCV (cv2) |
+| Language | Python |
+| Framework | Streamlit |
+| Input | User Uploaded Images |
+| Output | Processed Images |
+| Deployment | Streamlit Image Processing Toolkit |
 
 ---
 
-# Features Implemented
+# 🧠 Concepts Covered
 
-## OpenCV Fundamentals
+## What is OpenCV?
 
-- Read image
-- Display image
-- Save image
-- Extract image dimensions
-- Display image properties
+OpenCV (Open Source Computer Vision Library) is an open-source library used for computer vision and image processing. It provides efficient functions for reading, modifying, analyzing, and saving images and videos.
+
+Common applications include:
+
+- Image Processing
+- Face Detection
+- Medical Imaging
+- Robotics
+- Autonomous Vehicles
+- Industrial Automation
+
+---
+
+## BGR vs RGB
+
+| BGR | RGB |
+|------|------|
+| Default format in OpenCV | Standard format for display |
+| Blue → Green → Red | Red → Green → Blue |
+| Used internally by OpenCV | Used by Matplotlib and Pillow |
+
+OpenCV loads images in **BGR** format, so converting them to **RGB** is necessary before displaying them using visualization libraries.
+
+---
+
+## What are Grayscale Images?
+
+A grayscale image contains only one intensity channel instead of three color channels.
+
+Pixel values range from:
+
+- **0** → Black
+- **255** → White
+
+Grayscale images reduce computational complexity and are widely used in feature extraction, edge detection, thresholding, and image analysis.
+
+---
+
+# 📂 OpenCV Practice Programs
+
+## 1. OpenCV Fundamentals
+
+**File:** `opencv_fundamentals.py`
+
+Features:
+
+- Read images
+- Display dimensions
+- Display channels
+- Display file size
 - Convert BGR to RGB
-- Convert image to grayscale
+- Convert to grayscale
+- Save processed images
 
 ---
 
-## Basic Image Processing
+## 2. Basic Image Operations
 
-- Resize image
-- Crop image
-- Rotate image
-- Flip image horizontally
-- Flip image vertically
+**File:** `basic_image_operations.py`
 
----
+Implemented operations:
 
-## Drawing Operations
-
-- Draw Rectangle
-- Draw Circle
-- Draw Line
-- Draw Polygon
-- Add Custom Text
-
----
-
-## Image Processing Toolkit
-
-The toolkit supports:
-
-- Upload image
 - Resize
 - Crop
 - Rotate
 - Flip
-- Draw Shapes
-- Add Text
-- Convert to Grayscale
-- Brightness Adjustment
-- Contrast Adjustment
-- RGB vs BGR Comparison
-- Download Processed Image
-- Undo Previous Operation
-- Reset Image
+- Save processed outputs
 
 ---
 
-# Difference Between BGR and RGB
+## 3. Drawing Shapes
 
-OpenCV stores images in **BGR (Blue, Green, Red)** format by default, whereas most visualization libraries such as Matplotlib and Pillow use **RGB (Red, Green, Blue)**.
+**File:** `drawing_shapes.py`
 
-Although both formats contain the same color information, the order of the color channels is different. If a BGR image is displayed directly using libraries expecting RGB, the colors appear incorrect. Therefore, images are often converted from BGR to RGB before displaying.
+Implemented:
 
----
-
-# What are Grayscale Images?
-
-A grayscale image contains only intensity values instead of three color channels.
-
-Each pixel represents a shade ranging from black to white.
-
-Grayscale images are commonly used because:
-
-- They reduce computational complexity.
-- They require less memory.
-- Many computer vision algorithms perform better on grayscale images.
-- Edge detection and feature extraction become simpler.
+- Rectangle
+- Circle
+- Line
+- Polygon
+- Custom Text (Name & Date)
 
 ---
 
-# OpenCV Functions Used
+# 🛠️ Mini Project — Image Processing Toolkit
 
-Some of the major OpenCV functions used in this project include:
+**File:** `image_processing_toolkit.py`
+
+The toolkit combines all OpenCV operations into a single reusable application.
+
+Features:
+
+- Upload image
+- Convert to grayscale
+- Resize image
+- Rotate image
+- Flip image
+- Crop image
+- Draw shapes
+- Add custom text
+- Save processed image
+
+---
+
+# 🌐 Streamlit Application
+
+**File:** `streamlit_app.py`
+
+**Live Demo**
+
+https://mlb-internship-iofdnxjvjdatkpvbmofjjd.streamlit.app/
+
+Users can:
+
+- Upload an image
+- Resize
+- Rotate
+- Flip
+- Crop
+- Convert to grayscale
+- Draw shapes interactively
+- Select colors
+- Adjust thickness
+- Undo last drawing
+- Download the processed image
+
+---
+
+# 📊 OpenCV Functions Used
 
 - `cv2.imread()`
-- `cv2.imshow()`
 - `cv2.imwrite()`
 - `cv2.cvtColor()`
 - `cv2.resize()`
@@ -147,61 +171,86 @@ Some of the major OpenCV functions used in this project include:
 
 ---
 
-# Challenges Faced
+# 📚 Observations
 
-During development, several challenges were encountered:
-
-- Understanding the difference between BGR and RGB color spaces.
-- Managing image updates while performing multiple operations.
-- Preserving image quality after repeated processing.
-- Implementing an Undo feature using Streamlit Session State.
-- Making the application deployment-compatible by replacing `opencv-python` with `opencv-python-headless`.
-
-These challenges were resolved by carefully managing session state, organizing reusable helper functions, and following Streamlit deployment best practices.
+- OpenCV stores images in BGR format by default.
+- RGB conversion is required for correct visualization.
+- Grayscale simplifies image processing while preserving important structural information.
+- Image resizing changes dimensions without modifying image content.
+- Cropping extracts regions of interest.
+- Rotation and flipping efficiently change image orientation.
+- Interactive drawing tools make image annotation easier.
 
 ---
 
-# Technologies Used
+# 🗂️ Project Structure
 
-- Python
-- OpenCV
-- Streamlit
-- NumPy
-- Pillow
-
----
-
-# Learning Outcomes
-
-By completing this project, I learned:
-
-- How digital images are represented in OpenCV.
-- Practical image manipulation techniques.
-- Color space conversions.
-- Drawing and annotation using OpenCV.
-- Building interactive image processing applications with Streamlit.
-- Managing application state and deployment.
+```text
+Day16/
+│
+├── opencv_fundamentals.py
+├── basic_image_operations.py
+├── drawing_shapes.py
+├── image_processing_toolkit.py
+├── streamlit_app.py
+├── requirements.txt
+├── README.md
+├── input_images/
+├── output_images/
+└── screen_recording.mp4
+```
 
 ---
 
-# Future Improvements
+# ⚙️ Installation
 
-Possible enhancements include:
+```bash
+pip install -r requirements.txt
+```
 
-- Interactive drawing using mouse events.
-- Image filters (Blur, Sharpen, Edge Detection).
-- Histogram visualization.
-- Image comparison mode.
-- Batch image processing.
-- Undo/Redo history with multiple levels.
-- Support for additional image formats.
+Run the programs:
+
+```bash
+python opencv_fundamentals.py
+python basic_image_operations.py
+python drawing_shapes.py
+python image_processing_toolkit.py
+streamlit run streamlit_app.py
+```
 
 ---
 
-# Author
+# 🌍 Deployment
+
+**GitHub**
+
+https://github.com/HadeedJalani/MLB-Internship/tree/main/Day16
+
+**Streamlit**
+
+https://mlb-internship-iofdnxjvjdatkpvbmofjjd.streamlit.app/
+
+---
+
+# 📚 Learning Outcomes
+
+Through this project, I learned:
+
+- OpenCV fundamentals
+- BGR vs RGB
+- Grayscale image processing
+- Image resizing, cropping, rotation, and flipping
+- Drawing geometric shapes using OpenCV
+- Building reusable image processing applications
+- Developing interactive Streamlit applications
+- Deploying OpenCV projects on Streamlit Cloud
+
+---
+
+# 👨‍💻 Author
 
 **Hadeed Jalani**
 
-MLB Summer Internship – Day 16
+BS Computer Science
 
-OpenCV Fundamentals & Image Processing Toolkit
+**MLBench Summer Internship**

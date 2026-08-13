@@ -598,7 +598,7 @@ By completing this project, I learned how to:
 
 ### Streamlit
 
-[Live Streamlit Application](https://mlb-internship-bktjyuknqsnry3gv82rfqj.streamlit.app/?utm_source=chatgpt.com)
+https://mlb-internship-txl3no5nh4hivq8unmbdnx.streamlit.app/
 
 The application allows users to upload an image and interactively perform contour detection, shape classification, and geometric analysis.
 

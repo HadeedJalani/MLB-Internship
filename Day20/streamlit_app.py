@@ -78,7 +78,7 @@ st.markdown(
 # ==========================================================
 
 st.markdown(
-    '<div class="main-title">🎥 Day 20 — Video Processing with OpenCV</div>',
+    '<div class="main-title">🎥 Day 20 Video Processing with OpenCV</div>',
     unsafe_allow_html=True,
 )
 

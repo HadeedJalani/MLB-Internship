@@ -1,4 +1,4 @@
-# 🎥 Day 20 — Video Processing with OpenCV
+# 🎥 Day 20  Video Processing with OpenCV
 
 ### MLB Summer Internship — Computer Vision Track
 

@@ -60,10 +60,7 @@ The project focuses on understanding the complete OCR workflow rather than treat
 
 ## 🚀 Live Demo
 
-> Replace the link below with your actual Streamlit deployment URL.
-
-**🔗 [Launch OCR Document Reader](YOUR_STREAMLIT_APP_LINK)**
-
+https://mlb-internship-fdpejceifzt78gdyefrmkg.streamlit.app/
 ---
 
 ## 🎯 Project Objectives

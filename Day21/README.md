@@ -13,7 +13,7 @@
 
 ## About the Project
 
-**Computer Vision Image Processing Studio** is an interactive web-based image processing application developed as part of the **MLB Summer Internship — Day 21** task.
+**Computer Vision Image Processing Studio** is an interactive web-based image processing application developed as part of the **MLB Summer Internship  Day 21** task.
 
 The application combines multiple computer vision techniques learned throughout the internship into a single, user-friendly interface.
 
@@ -30,7 +30,7 @@ The goal of this project is to demonstrate how traditional computer vision techn
 ### Streamlit Application
 
 **Live Demo:**
-`YOUR_STREAMLIT_APP_URL`
+https://mlb-internship-65q6mnpftea7pdvxebbaz9.streamlit.app/
 
 > The application is publicly deployed using Streamlit and can be used directly from a web browser.
 

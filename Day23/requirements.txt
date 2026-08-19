@@ -4,4 +4,4 @@ numpy<2
 Pillow
 easyocr==1.7.2
 paddleocr==3.7.0
-paddlepaddle
+paddlepaddle==3.3.1

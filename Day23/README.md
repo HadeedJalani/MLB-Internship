@@ -658,7 +658,7 @@ Open the URL in a browser to access the OCR workspace.
 
 # 🖥️ Usage Guide
 
-## Step 1 — Upload a Document
+## Step 1 Upload a Document
 
 Upload an image containing text.
 
@@ -674,7 +674,7 @@ WEBP
 
 ---
 
-## Step 2 — Configure Preprocessing
+## Step 2  Configure Preprocessing
 
 Enable the preprocessing pipeline when necessary.
 
@@ -691,7 +691,7 @@ Different documents may require different preprocessing configurations.
 
 ---
 
-## Step 3 — Select OCR Engine
+## Step 3  Select OCR Engine
 
 Choose one of:
 
@@ -703,7 +703,7 @@ Compare Engines
 
 ---
 
-## Step 4 — Configure Confidence
+## Step 4  Configure Confidence
 
 Set the minimum confidence threshold.
 
@@ -711,7 +711,7 @@ Detections below the selected threshold can be excluded from the displayed resul
 
 ---
 
-## Step 5 — Run OCR
+## Step 5  Run OCR
 
 Start the analysis using:
 
@@ -723,7 +723,7 @@ The application processes the uploaded document through the selected OCR pipelin
 
 ---
 
-## Step 6 — Review Results
+## Step 6  Review Results
 
 Review:
 
@@ -735,7 +735,7 @@ Review:
 
 ---
 
-## Step 7 — Compare Engines
+## Step 7  Compare Engines
 
 When **Compare Engines** is selected, EasyOCR and PaddleOCR process the document independently.
 
@@ -743,7 +743,7 @@ Their outputs can then be evaluated side-by-side.
 
 ---
 
-## Step 8 — Export
+## Step 8 Export
 
 Download the recognized text as a `.txt` file.
 
@@ -931,7 +931,7 @@ Performance can vary depending on:
 
 # 🧠 Challenges & Solutions
 
-## Challenge 1 — PaddleOCR Compatibility
+## Challenge 1 PaddleOCR Compatibility
 
 ### Problem
 
@@ -943,7 +943,7 @@ Implemented graceful error handling and compatibility-oriented runtime configura
 
 ---
 
-## Challenge 2 — OCR Initialization Time
+## Challenge 2  OCR Initialization Time
 
 ### Problem
 
@@ -955,7 +955,7 @@ Used Streamlit resource caching to reuse initialized OCR models.
 
 ---
 
-## Challenge 3 — Preserving Comparison Results
+## Challenge 3  Preserving Comparison Results
 
 ### Problem
 
@@ -967,7 +967,7 @@ Used Streamlit session state to maintain independent EasyOCR and PaddleOCR resul
 
 ---
 
-## Challenge 4 — PaddleOCR Result Structures
+## Challenge 4  PaddleOCR Result Structures
 
 ### Problem
 
@@ -979,7 +979,7 @@ Implemented flexible result parsing capable of handling multiple output formats.
 
 ---
 
-## Challenge 5 — Loose EasyOCR Bounding Boxes
+## Challenge 5  Loose EasyOCR Bounding Boxes
 
 ### Problem
 

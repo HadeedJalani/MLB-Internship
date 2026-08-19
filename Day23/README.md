@@ -1334,13 +1334,6 @@ The goal is not simply to make OCR work under ideal conditions, but to make the 
 
 ---
 
-# 👨‍💻 Author
-
-## Hadeed Jalani
-
-**Final-Year BSCS Student**
-**University of Lahore**
-
 ### Technical Interests
 
 * Artificial Intelligence
@@ -1351,16 +1344,6 @@ The goal is not simply to make OCR work under ideal conditions, but to make the 
 * Software Engineering
 
 ---
-
-# 📚 Internship Context
-
-This project was developed as part of the:
-
-**MLB Summer Internship — Day 23**
-
-### Task
-
-> Build a complete OCR application capable of extracting text from document images using multiple OCR engines, improving OCR input through image preprocessing, visualizing detection results, comparing OCR performance, exporting extracted text, handling runtime issues, and deploying the application publicly.
 
 ---
 
@@ -1397,6 +1380,12 @@ Public Deployment
 The project demonstrates an end-to-end approach to building a practical OCR application — from **raw document image** to **processed image**, **multi-engine recognition**, **visualized detections**, **confidence analysis**, **comparison**, and **exportable text**.
 
 ---
+
+# Author
+
+## Hadeed Jalani
+
+
 
 <p align="center">
 

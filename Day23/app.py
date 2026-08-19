@@ -1,43 +1,35 @@
-# ==========================================================
-# MLB Summer Internship - Day 23
-# Document OCR Studio
+# ============================================================
+# MLB SUMMER INTERNSHIP - DAY 23
+# DOCUMENT OCR STUDIO
 #
-# Dual OCR Engine Application
 # EasyOCR + PaddleOCR + OpenCV + Streamlit
 #
-# IMPORTANT IMPROVEMENTS
-# ----------------------------------------------------------
-# 1. OCR models are cached with st.cache_resource.
-# 2. OCR inference is cached with st.cache_data.
-# 3. EasyOCR results are NOT deleted when PaddleOCR runs.
-# 4. PaddleOCR results are NOT deleted when EasyOCR runs.
-# 5. Results remain available for comparison.
-# 6. Results automatically reset when a new image is uploaded.
-# 7. PaddleOCR failures do not affect EasyOCR.
-# 8. EasyOCR bounding boxes are refined against original image.
-# 9. PaddleOCR oneDNN/MKLDNN compatibility handling included.
-# 10. Separate "Run Selected Engine" and "Run Both Engines".
-# ==========================================================
+# CPU-optimized version
+# PaddlePaddle 3.2.0
+# PaddleOCR 3.2.0
+# PaddleX 3.2.0
+# ============================================================
 
-
-# ==========================================================
-# PADDLE COMPATIBILITY SETTINGS
-#
-# These MUST be configured before importing Paddle/PaddleOCR.
-# ==========================================================
+# ============================================================
+# PADDLE CPU SETTINGS
+# MUST BE SET BEFORE IMPORTING PADDLE / PADDLEOCR
+# ============================================================
 
 import os
+
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 os.environ["PADDLE_PDX_ENABLE_MKLDNN_BYDEFAULT"] = "0"
 os.environ["FLAGS_use_mkldnn"] = "0"
 os.environ["FLAGS_use_onednn"] = "0"
 os.environ["FLAGS_enable_pir_api"] = "0"
+
 os.environ["GLOG_v"] = "0"
 
 
-# ==========================================================
+# ============================================================
 # IMPORTS
-# ==========================================================
+# ============================================================
 
 import hashlib
 import io
@@ -50,21 +42,21 @@ import streamlit as st
 from PIL import Image
 
 
-# ==========================================================
-# PAGE CONFIGURATION
-# ==========================================================
+# ============================================================
+# PAGE CONFIG
+# ============================================================
 
 st.set_page_config(
     page_title="Document OCR Studio",
-    page_icon="",
+    page_icon="📄",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 
-# ==========================================================
-# CUSTOM CSS
-# ==========================================================
+# ============================================================
+# CSS
+# ============================================================
 
 st.markdown(
     """
@@ -77,15 +69,14 @@ st.markdown(
     }
 
     .hero {
-        padding: 2.2rem 2.5rem;
+        padding: 2.3rem 2.5rem;
         margin-bottom: 1.8rem;
         border-radius: 18px;
-        background:
-            linear-gradient(
-                135deg,
-                #0f172a 0%,
-                #1e293b 100%
-            );
+        background: linear-gradient(
+            135deg,
+            #0f172a 0%,
+            #1e293b 100%
+        );
         border: 1px solid rgba(148,163,184,0.20);
     }
 
@@ -94,14 +85,14 @@ st.markdown(
         font-size: 2.45rem;
         font-weight: 750;
         letter-spacing: -0.8px;
-        margin-bottom: 0.35rem;
+        margin-bottom: 0.4rem;
     }
 
     .hero-subtitle {
         color: #cbd5e1;
         font-size: 1rem;
         line-height: 1.65;
-        max-width: 850px;
+        max-width: 900px;
     }
 
     .section-title {
@@ -131,20 +122,6 @@ st.markdown(
         line-height: 1.5;
     }
 
-    .status-ok {
-        padding: 0.7rem 0.9rem;
-        border-radius: 9px;
-        background: rgba(34,197,94,0.10);
-        border: 1px solid rgba(34,197,94,0.25);
-    }
-
-    .status-warning {
-        padding: 0.7rem 0.9rem;
-        border-radius: 9px;
-        background: rgba(245,158,11,0.10);
-        border: 1px solid rgba(245,158,11,0.25);
-    }
-
     .footer {
         margin-top: 3rem;
         padding-top: 1rem;
@@ -160,26 +137,25 @@ st.markdown(
 )
 
 
-# ==========================================================
+# ============================================================
 # SESSION STATE
-# ==========================================================
+# ============================================================
 
 if "ocr_results" not in st.session_state:
     st.session_state.ocr_results = {}
 
-if "current_image_hash" not in st.session_state:
-    st.session_state.current_image_hash = None
+if "image_hash" not in st.session_state:
+    st.session_state.image_hash = None
 
 if "paddle_error" not in st.session_state:
     st.session_state.paddle_error = None
 
 
-# ==========================================================
-# BASIC HELPERS
-# ==========================================================
+# ============================================================
+# HELPERS
+# ============================================================
 
 def clean_text(text):
-
     if text is None:
         return ""
 
@@ -194,16 +170,59 @@ def clean_text(text):
     return text.strip()
 
 
-def calculate_image_hash(image_bytes):
-
-    return hashlib.sha256(
-        image_bytes
-    ).hexdigest()
+def image_hash(image_bytes):
+    return hashlib.sha256(image_bytes).hexdigest()
 
 
-# ==========================================================
+def average_confidence(detections):
+    if not detections:
+        return 0.0
+
+    values = []
+
+    for detection in detections:
+        try:
+            values.append(
+                float(
+                    detection.get(
+                        "confidence",
+                        0.0
+                    )
+                )
+            )
+        except Exception:
+            pass
+
+    if not values:
+        return 0.0
+
+    return sum(values) / len(values)
+
+
+def detections_to_text(detections):
+
+    lines = []
+
+    for detection in detections:
+
+        text = str(
+            detection.get(
+                "text",
+                ""
+            )
+        ).strip()
+
+        if text:
+            lines.append(text)
+
+    return clean_text(
+        "\n".join(lines)
+    )
+
+
+# ============================================================
 # IMAGE LOADING
-# ==========================================================
+# ============================================================
 
 def load_image(uploaded_file):
 
@@ -213,9 +232,7 @@ def load_image(uploaded_file):
         io.BytesIO(image_bytes)
     ).convert("RGB")
 
-    rgb = np.array(
-        pil_image
-    )
+    rgb = np.array(pil_image)
 
     bgr = cv2.cvtColor(
         rgb,
@@ -225,16 +242,16 @@ def load_image(uploaded_file):
     return image_bytes, rgb, bgr
 
 
-# ==========================================================
-# IMAGE PREPROCESSING
-# ==========================================================
+# ============================================================
+# PREPROCESSING
+# ============================================================
 
 def preprocess_image(
     image,
     grayscale=True,
     denoise=False,
     enhance=True,
-    threshold=False,
+    threshold=False
 ):
 
     working = image.copy()
@@ -250,7 +267,7 @@ def preprocess_image(
 
         gray = working
 
-    if denoise:
+    if denoise and len(gray.shape) == 2:
 
         gray = cv2.fastNlMeansDenoising(
             gray,
@@ -290,9 +307,9 @@ def preprocess_image(
     return gray
 
 
-# ==========================================================
-# BOUNDING BOX NORMALIZATION
-# ==========================================================
+# ============================================================
+# BOUNDING BOX
+# ============================================================
 
 def normalize_bbox(bbox):
 
@@ -323,7 +340,7 @@ def normalize_bbox(bbox):
                 for x, y in points
             ]
 
-        # [x1, y1, x2, y2]
+        # x1,y1,x2,y2
         if (
             points.ndim == 1
             and len(points) == 4
@@ -332,29 +349,26 @@ def normalize_bbox(bbox):
             x1, y1, x2, y2 = points
 
             return [
-                [int(round(x1)), int(round(y1))],
-                [int(round(x2)), int(round(y1))],
-                [int(round(x2)), int(round(y2))],
-                [int(round(x1)), int(round(y2))]
+                [int(x1), int(y1)],
+                [int(x2), int(y1)],
+                [int(x2), int(y2)],
+                [int(x1), int(y2)]
             ]
 
     except Exception:
-
         return None
 
     return None
 
 
-# ==========================================================
+# ============================================================
 # EASY OCR MODEL
-#
-# This is executed only once per Streamlit process.
-# ==========================================================
+# ============================================================
 
 @st.cache_resource(
     show_spinner=False
 )
-def initialize_easyocr():
+def get_easyocr():
 
     import easyocr
 
@@ -365,342 +379,25 @@ def initialize_easyocr():
     )
 
 
-# ==========================================================
-# EASY OCR BOX REFINEMENT
-# ==========================================================
-
-def refine_easy_bbox(
-    bbox,
-    image,
-    search_margin=6
-):
-
-    if bbox is None:
-        return None
-
-    try:
-
-        points = np.asarray(
-            bbox,
-            dtype=np.int32
-        )
-
-        if (
-            points.ndim != 2
-            or points.shape[1] != 2
-        ):
-            return bbox
-
-        height, width = image.shape[:2]
-
-        x_min = int(
-            np.min(points[:, 0])
-        )
-
-        y_min = int(
-            np.min(points[:, 1])
-        )
-
-        x_max = int(
-            np.max(points[:, 0])
-        )
-
-        y_max = int(
-            np.max(points[:, 1])
-        )
-
-        x_min = max(
-            0,
-            min(width - 1, x_min)
-        )
-
-        y_min = max(
-            0,
-            min(height - 1, y_min)
-        )
-
-        x_max = max(
-            0,
-            min(width - 1, x_max)
-        )
-
-        y_max = max(
-            0,
-            min(height - 1, y_max)
-        )
-
-        if (
-            x_max <= x_min
-            or y_max <= y_min
-        ):
-            return bbox
-
-        # Search around original EasyOCR box.
-        sx1 = max(
-            0,
-            x_min - search_margin
-        )
-
-        sy1 = max(
-            0,
-            y_min - search_margin
-        )
-
-        sx2 = min(
-            width - 1,
-            x_max + search_margin
-        )
-
-        sy2 = min(
-            height - 1,
-            y_max + search_margin
-        )
-
-        roi = image[
-            sy1:sy2 + 1,
-            sx1:sx2 + 1
-        ]
-
-        if roi.size == 0:
-            return bbox
-
-        gray = cv2.cvtColor(
-            roi,
-            cv2.COLOR_BGR2GRAY
-        )
-
-        # Dark text -> white foreground.
-        _, binary = cv2.threshold(
-            gray,
-            0,
-            255,
-            cv2.THRESH_BINARY_INV
-            + cv2.THRESH_OTSU
-        )
-
-        # Remove very small noise.
-        kernel = np.ones(
-            (2, 2),
-            np.uint8
-        )
-
-        binary = cv2.morphologyEx(
-            binary,
-            cv2.MORPH_OPEN,
-            kernel
-        )
-
-        # Original box in local ROI coordinates.
-        bx1 = x_min - sx1
-        by1 = y_min - sy1
-        bx2 = x_max - sx1
-        by2 = y_max - sy1
-
-        local_margin = 4
-
-        rx1 = max(
-            0,
-            bx1 - local_margin
-        )
-
-        ry1 = max(
-            0,
-            by1 - local_margin
-        )
-
-        rx2 = min(
-            binary.shape[1] - 1,
-            bx2 + local_margin
-        )
-
-        ry2 = min(
-            binary.shape[0] - 1,
-            by2 + local_margin
-        )
-
-        candidate = binary[
-            ry1:ry2 + 1,
-            rx1:rx2 + 1
-        ]
-
-        if candidate.size == 0:
-            return bbox
-
-        contours, _ = cv2.findContours(
-            candidate,
-            cv2.RETR_EXTERNAL,
-            cv2.CHAIN_APPROX_SIMPLE
-        )
-
-        boxes = []
-
-        for contour in contours:
-
-            area = cv2.contourArea(
-                contour
-            )
-
-            if area < 1:
-                continue
-
-            cx, cy, cw, ch = cv2.boundingRect(
-                contour
-            )
-
-            if cw < 1 or ch < 1:
-                continue
-
-            boxes.append(
-                (
-                    cx + rx1,
-                    cy + ry1,
-                    cw,
-                    ch
-                )
-            )
-
-        if not boxes:
-
-            return [
-                [x_min, y_min],
-                [x_max, y_min],
-                [x_max, y_max],
-                [x_min, y_max]
-            ]
-
-        union_x1 = min(
-            box[0]
-            for box in boxes
-        )
-
-        union_y1 = min(
-            box[1]
-            for box in boxes
-        )
-
-        union_x2 = max(
-            box[0] + box[2]
-            for box in boxes
-        )
-
-        union_y2 = max(
-            box[1] + box[3]
-            for box in boxes
-        )
-
-        final_x1 = sx1 + union_x1
-        final_y1 = sy1 + union_y1
-        final_x2 = sx1 + union_x2
-        final_y2 = sy1 + union_y2
-
-        # Prevent refinement from jumping to unrelated text.
-        max_shift = max(
-            10,
-            int(
-                max(
-                    x_max - x_min,
-                    y_max - y_min
-                ) * 0.35
-            )
-        )
-
-        if abs(final_x1 - x_min) > max_shift:
-            final_x1 = x_min
-
-        if abs(final_y1 - y_min) > max_shift:
-            final_y1 = y_min
-
-        if abs(final_x2 - x_max) > max_shift:
-            final_x2 = x_max
-
-        if abs(final_y2 - y_max) > max_shift:
-            final_y2 = y_max
-
-        final_x1 = max(
-            0,
-            min(width - 1, final_x1)
-        )
-
-        final_y1 = max(
-            0,
-            min(height - 1, final_y1)
-        )
-
-        final_x2 = max(
-            0,
-            min(width - 1, final_x2)
-        )
-
-        final_y2 = max(
-            0,
-            min(height - 1, final_y2)
-        )
-
-        if (
-            final_x2 <= final_x1
-            or final_y2 <= final_y1
-        ):
-            return [
-                [x_min, y_min],
-                [x_max, y_min],
-                [x_max, y_max],
-                [x_min, y_max]
-            ]
-
-        return [
-            [
-                int(final_x1),
-                int(final_y1)
-            ],
-            [
-                int(final_x2),
-                int(final_y1)
-            ],
-            [
-                int(final_x2),
-                int(final_y2)
-            ],
-            [
-                int(final_x1),
-                int(final_y2)
-            ]
-        ]
-
-    except Exception:
-
-        return bbox
-
-
-# ==========================================================
-# EASY OCR INFERENCE
-#
-# Cached separately from model initialization.
-# Same image + same settings = no second inference.
-# ==========================================================
+# ============================================================
+# EASY OCR
+# ============================================================
 
 @st.cache_data(
     show_spinner=False
 )
-def cached_easyocr(
+def run_easyocr(
     image_bytes,
-    min_confidence,
-    refine_boxes
+    min_confidence
 ):
 
-    reader = initialize_easyocr()
+    reader = get_easyocr()
 
-    pil_image = Image.open(
+    image = Image.open(
         io.BytesIO(image_bytes)
     ).convert("RGB")
 
-    rgb = np.array(
-        pil_image
-    )
-
-    bgr = cv2.cvtColor(
-        rgb,
-        cv2.COLOR_RGB2BGR
-    )
+    rgb = np.array(image)
 
     start = time.perf_counter()
 
@@ -711,6 +408,11 @@ def cached_easyocr(
         width_ths=0.7,
         height_ths=0.5,
         slope_ths=0.15
+    )
+
+    elapsed = (
+        time.perf_counter()
+        - start
     )
 
     detections = []
@@ -750,13 +452,6 @@ def cached_easyocr(
         if bbox is None:
             continue
 
-        if refine_boxes:
-
-            bbox = refine_easy_bbox(
-                bbox,
-                bgr
-            )
-
         detections.append(
             {
                 "bbox": bbox,
@@ -764,11 +459,6 @@ def cached_easyocr(
                 "confidence": confidence
             }
         )
-
-    elapsed = (
-        time.perf_counter()
-        - start
-    )
 
     return {
         "success": True,
@@ -783,107 +473,62 @@ def cached_easyocr(
     }
 
 
-# ==========================================================
-# PADDLE OCR INITIALIZATION
-# ==========================================================
+# ============================================================
+# PADDLE OCR MODEL
+#
+# IMPORTANT:
+# Explicitly use MOBILE models.
+#
+# This prevents PaddleOCR from selecting:
+# PP-OCRv5_server_det
+#
+# We want:
+# PP-OCRv5_mobile_det
+# PP-OCRv5_mobile_rec
+#
+# CPU only.
+# ============================================================
 
 @st.cache_resource(
     show_spinner=False
 )
-def initialize_paddleocr():
+def get_paddleocr():
 
-    try:
+    from paddleocr import PaddleOCR
 
-        from paddleocr import PaddleOCR
+    # --------------------------------------------------------
+    # PaddleOCR 3.x / 3.2.x
+    #
+    # Mobile models are substantially lighter than server
+    # models and are appropriate for this project.
+    # --------------------------------------------------------
 
-    except Exception as error:
+    reader = PaddleOCR(
+        lang="en",
 
-        raise RuntimeError(
-            "PaddleOCR could not be imported.\n\n"
-            f"Original error: {error}"
-        ) from error
+        text_detection_model_name=(
+            "PP-OCRv5_mobile_det"
+        ),
 
-    errors = []
+        text_recognition_model_name=(
+            "PP-OCRv5_mobile_rec"
+        ),
 
-    # ------------------------------------------------------
-    # PaddleOCR 3.x
-    # ------------------------------------------------------
+        use_doc_orientation_classify=False,
+        use_doc_unwarping=False,
+        use_textline_orientation=False,
 
-    try:
+        device="cpu",
 
-        reader = PaddleOCR(
-            lang="en",
-            use_doc_orientation_classify=False,
-            use_doc_unwarping=False,
-            use_textline_orientation=False,
-            enable_mkldnn=False
-        )
-
-        return reader
-
-    except Exception as error:
-
-        errors.append(
-            "PaddleOCR 3.x initialization:\n"
-            + str(error)
-        )
-
-    # ------------------------------------------------------
-    # PaddleOCR 3.x without enable_mkldnn
-    # Some versions don't recognize this parameter.
-    # ------------------------------------------------------
-
-    try:
-
-        reader = PaddleOCR(
-            lang="en",
-            use_doc_orientation_classify=False,
-            use_doc_unwarping=False,
-            use_textline_orientation=False
-        )
-
-        return reader
-
-    except Exception as error:
-
-        errors.append(
-            "PaddleOCR 3.x fallback:\n"
-            + str(error)
-        )
-
-    # ------------------------------------------------------
-    # PaddleOCR 2.x
-    # ------------------------------------------------------
-
-    try:
-
-        reader = PaddleOCR(
-            lang="en",
-            use_angle_cls=False
-        )
-
-        return reader
-
-    except Exception as error:
-
-        errors.append(
-            "PaddleOCR 2.x initialization:\n"
-            + str(error)
-        )
-
-    raise RuntimeError(
-        "PaddleOCR was installed/imported but "
-        "could not be initialized.\n\n"
-        "This usually indicates a "
-        "PaddlePaddle/PaddleOCR compatibility "
-        "problem.\n\n"
-        + "\n\n".join(errors)
+        enable_mkldnn=False,
     )
 
+    return reader
 
-# ==========================================================
+
+# ============================================================
 # PADDLE RESULT PARSER
-# ==========================================================
+# ============================================================
 
 def parse_paddle_result(result):
 
@@ -892,9 +537,9 @@ def parse_paddle_result(result):
     if result is None:
         return detections
 
-    # ------------------------------------------------------
-    # PaddleOCR 3.x result object
-    # ------------------------------------------------------
+    # --------------------------------------------------------
+    # PaddleOCR result object
+    # --------------------------------------------------------
 
     if hasattr(result, "json"):
 
@@ -912,9 +557,9 @@ def parse_paddle_result(result):
         except Exception:
             pass
 
-    # ------------------------------------------------------
+    # --------------------------------------------------------
     # Dictionary
-    # ------------------------------------------------------
+    # --------------------------------------------------------
 
     if isinstance(result, dict):
 
@@ -952,16 +597,6 @@ def parse_paddle_result(result):
                     for _ in texts
                 ]
 
-            elif not isinstance(
-                scores,
-                (list, tuple, np.ndarray)
-            ):
-
-                scores = [
-                    scores
-                    for _ in texts
-                ]
-
             if boxes is None:
 
                 boxes = [
@@ -969,9 +604,7 @@ def parse_paddle_result(result):
                     for _ in texts
                 ]
 
-            for index, text in enumerate(
-                texts
-            ):
+            for i, text in enumerate(texts):
 
                 text = str(
                     text
@@ -983,7 +616,7 @@ def parse_paddle_result(result):
                 try:
 
                     confidence = float(
-                        scores[index]
+                        scores[i]
                     )
 
                 except Exception:
@@ -993,12 +626,12 @@ def parse_paddle_result(result):
                 bbox = None
 
                 if (
-                    boxes is not None
-                    and index < len(boxes)
+                    i < len(boxes)
+                    and boxes[i] is not None
                 ):
 
                     bbox = normalize_bbox(
-                        boxes[index]
+                        boxes[i]
                     )
 
                 detections.append(
@@ -1011,34 +644,31 @@ def parse_paddle_result(result):
 
             return detections
 
+        # Recursive parsing
         for value in result.values():
 
             nested = parse_paddle_result(
                 value
             )
 
-            if nested:
-                detections.extend(
-                    nested
-                )
+            detections.extend(
+                nested
+            )
 
         return detections
 
-    # ------------------------------------------------------
-    # List / Tuple
-    # ------------------------------------------------------
+    # --------------------------------------------------------
+    # List / tuple
+    # --------------------------------------------------------
 
     if isinstance(
         result,
         (list, tuple)
     ):
 
-        # Old PaddleOCR:
+        # PaddleOCR 2.x style:
         #
-        # [
-        #     bbox,
-        #     ["text", confidence]
-        # ]
+        # [bbox, ["text", score]]
 
         if len(result) == 2:
 
@@ -1055,13 +685,10 @@ def parse_paddle_result(result):
                 ).strip()
 
                 try:
-
                     confidence = float(
                         recognition[1]
                     )
-
                 except Exception:
-
                     confidence = 0.0
 
                 if text:
@@ -1086,22 +713,20 @@ def parse_paddle_result(result):
                 item
             )
 
-            if nested:
-
-                detections.extend(
-                    nested
-                )
+            detections.extend(
+                nested
+            )
 
         return detections
 
     return detections
 
 
-# ==========================================================
-# PADDLE OCR EXECUTION
-# ==========================================================
+# ============================================================
+# PADDLE INFERENCE
+# ============================================================
 
-def run_paddleocr(
+def execute_paddleocr(
     reader,
     image
 ):
@@ -1118,29 +743,20 @@ def run_paddleocr(
 
         detections = []
 
-        try:
+        for item in result:
 
-            for item in result:
+            parsed = parse_paddle_result(
+                item
+            )
 
-                parsed = parse_paddle_result(
-                    item
-                )
-
-                detections.extend(
-                    parsed
-                )
-
-        except TypeError:
-
-            detections = parse_paddle_result(
-                result
+            detections.extend(
+                parsed
             )
 
         if detections:
-
             return detections
 
-    # PaddleOCR 2.x
+    # PaddleOCR 2.x fallback
     if hasattr(
         reader,
         "ocr"
@@ -1156,40 +772,34 @@ def run_paddleocr(
         )
 
         if detections:
-
             return detections
 
-    raise RuntimeError(
-        "PaddleOCR completed inference but "
-        "returned no recognizable text."
-    )
+    return []
 
 
-# ==========================================================
-# CACHED PADDLE OCR
-# ==========================================================
+# ============================================================
+# PADDLE OCR
+# ============================================================
 
 @st.cache_data(
     show_spinner=False
 )
-def cached_paddleocr(
+def run_paddleocr(
     image_bytes,
     min_confidence
 ):
 
-    reader = initialize_paddleocr()
+    reader = get_paddleocr()
 
-    pil_image = Image.open(
+    image = Image.open(
         io.BytesIO(image_bytes)
     ).convert("RGB")
 
-    rgb = np.array(
-        pil_image
-    )
+    rgb = np.array(image)
 
     start = time.perf_counter()
 
-    detections = run_paddleocr(
+    detections = execute_paddleocr(
         reader,
         rgb
     )
@@ -1200,9 +810,9 @@ def cached_paddleocr(
     )
 
     detections = [
-        detection
-        for detection in detections
-        if detection.get(
+        d
+        for d in detections
+        if d.get(
             "confidence",
             0.0
         ) >= min_confidence
@@ -1221,72 +831,11 @@ def cached_paddleocr(
     }
 
 
-# ==========================================================
-# TEXT / CONFIDENCE
-# ==========================================================
+# ============================================================
+# DRAW BOXES
+# ============================================================
 
-def detections_to_text(
-    detections
-):
-
-    lines = []
-
-    for detection in detections:
-
-        text = str(
-            detection.get(
-                "text",
-                ""
-            )
-        ).strip()
-
-        if text:
-
-            lines.append(
-                text
-            )
-
-    return clean_text(
-        "\n".join(lines)
-    )
-
-
-def average_confidence(
-    detections
-):
-
-    if not detections:
-        return 0.0
-
-    values = []
-
-    for detection in detections:
-
-        try:
-
-            values.append(
-                float(
-                    detection.get(
-                        "confidence",
-                        0
-                    )
-                )
-            )
-
-        except Exception:
-            pass
-
-    if not values:
-        return 0.0
-
-    return sum(values) / len(values)
-
-
-# ==========================================================
-# DRAW DETECTIONS
-# ==========================================================
-
-def draw_detections(
+def draw_boxes(
     image,
     detections
 ):
@@ -1344,9 +893,9 @@ def draw_detections(
     return output
 
 
-# ==========================================================
+# ============================================================
 # HERO
-# ==========================================================
+# ============================================================
 
 st.title("Document OCR Studio")
 
@@ -1357,9 +906,11 @@ st.markdown(
     """
 )
 
-# ==========================================================
+
+
+# ============================================================
 # SIDEBAR
-# ==========================================================
+# ============================================================
 
 with st.sidebar:
 
@@ -1426,20 +977,17 @@ with st.sidebar:
         value=True
     )
 
-    refine_boxes = st.toggle(
-        "Refine EasyOCR boxes",
-        value=True
-    )
+    st.markdown("---")
 
     st.caption(
-        "EasyOCR boxes are refined against "
-        "the original document."
+        "PaddleOCR is configured for CPU inference "
+        "using lightweight PP-OCRv5 mobile models."
     )
 
 
-# ==========================================================
-# FILE UPLOAD
-# ==========================================================
+# ============================================================
+# UPLOAD
+# ============================================================
 
 st.markdown(
     '<div class="section-title">Document Input</div>',
@@ -1467,9 +1015,9 @@ if uploaded_file is None:
     st.stop()
 
 
-# ==========================================================
+# ============================================================
 # LOAD IMAGE
-# ==========================================================
+# ============================================================
 
 try:
 
@@ -1490,24 +1038,21 @@ except Exception as error:
     st.stop()
 
 
-# ==========================================================
-# IMAGE ID
-#
-# When a new image is uploaded, old OCR results are removed.
-# Changing engines does NOT remove results.
-# ==========================================================
+# ============================================================
+# RESET RESULTS FOR NEW IMAGE
+# ============================================================
 
-image_hash = calculate_image_hash(
+current_hash = image_hash(
     image_bytes
 )
 
 if (
-    st.session_state.current_image_hash
-    != image_hash
+    st.session_state.image_hash
+    != current_hash
 ):
 
-    st.session_state.current_image_hash = (
-        image_hash
+    st.session_state.image_hash = (
+        current_hash
     )
 
     st.session_state.ocr_results = {}
@@ -1515,9 +1060,9 @@ if (
     st.session_state.paddle_error = None
 
 
-# ==========================================================
-# IMAGE PREPROCESSING
-# ==========================================================
+# ============================================================
+# PREPROCESS
+# ============================================================
 
 if preprocessing_enabled:
 
@@ -1540,16 +1085,18 @@ prepared_rgb = cv2.cvtColor(
 )
 
 
-# ==========================================================
+# ============================================================
 # IMAGE PREVIEW
-# ==========================================================
+# ============================================================
 
 st.markdown(
     '<div class="section-title">Image Preview</div>',
     unsafe_allow_html=True
 )
 
-preview_col1, preview_col2 = st.columns(2)
+preview_col1, preview_col2 = st.columns(
+    2
+)
 
 with preview_col1:
 
@@ -1559,8 +1106,9 @@ with preview_col1:
 
     st.image(
         rgb_image,
-        use_container_width=True
+        width="stretch"
     )
+
 
 with preview_col2:
 
@@ -1570,207 +1118,44 @@ with preview_col2:
 
     st.image(
         prepared_rgb,
-        use_container_width=True
+        width="stretch"
     )
 
 
-# ==========================================================
+# ============================================================
 # OCR CONTROLS
-# ==========================================================
+# ============================================================
 
 st.markdown(
     '<div class="section-title">OCR Analysis</div>',
     unsafe_allow_html=True
 )
 
-button_col1, button_col2 = st.columns(2)
-
+button_col1, button_col2 = st.columns(
+    2
+)
 
 with button_col1:
 
     run_selected = st.button(
         "Run Selected Engine",
         type="primary",
-        use_container_width=True
+        width="stretch"
     )
-
 
 with button_col2:
 
     run_both = st.button(
         "Run Both Engines",
-        use_container_width=True
+        width="stretch"
     )
 
 
-# ==========================================================
-# RUN SELECTED ENGINE
-# ==========================================================
+# ============================================================
+# RUN EASY OCR
+# ============================================================
 
-if run_selected:
-
-    # ------------------------------------------------------
-    # EASY OCR
-    # ------------------------------------------------------
-
-    if engine == "EasyOCR":
-
-        try:
-
-            with st.spinner(
-                "Running EasyOCR..."
-            ):
-
-                result = cached_easyocr(
-                    image_bytes,
-                    min_confidence,
-                    refine_boxes
-                )
-
-            st.session_state.ocr_results[
-                "EasyOCR"
-            ] = result
-
-            st.success(
-                "EasyOCR completed."
-            )
-
-        except Exception as error:
-
-            st.session_state.ocr_results[
-                "EasyOCR"
-            ] = {
-                "success": False,
-                "error": str(error)
-            }
-
-    # ------------------------------------------------------
-    # PADDLE OCR
-    # ------------------------------------------------------
-
-    elif engine == "PaddleOCR":
-
-        try:
-
-            with st.spinner(
-                "Running PaddleOCR..."
-            ):
-
-                result = cached_paddleocr(
-                    image_bytes,
-                    min_confidence
-                )
-
-            st.session_state.ocr_results[
-                "PaddleOCR"
-            ] = result
-
-            st.session_state.paddle_error = None
-
-            st.success(
-                "PaddleOCR completed."
-            )
-
-        except Exception as error:
-
-            error_text = str(
-                error
-            )
-
-            st.session_state.paddle_error = (
-                error_text
-            )
-
-            st.session_state.ocr_results[
-                "PaddleOCR"
-            ] = {
-                "success": False,
-                "error": error_text
-            }
-
-    # ------------------------------------------------------
-    # COMPARE
-    #
-    # Run only missing engines.
-    # Existing results remain untouched.
-    # ------------------------------------------------------
-
-    else:
-
-        # EasyOCR
-        if "EasyOCR" not in st.session_state.ocr_results:
-
-            try:
-
-                with st.spinner(
-                    "Running EasyOCR..."
-                ):
-
-                    st.session_state.ocr_results[
-                        "EasyOCR"
-                    ] = cached_easyocr(
-                        image_bytes,
-                        min_confidence,
-                        refine_boxes
-                    )
-
-            except Exception as error:
-
-                st.session_state.ocr_results[
-                    "EasyOCR"
-                ] = {
-                    "success": False,
-                    "error": str(error)
-                }
-
-        # PaddleOCR
-        if "PaddleOCR" not in st.session_state.ocr_results:
-
-            try:
-
-                with st.spinner(
-                    "Running PaddleOCR..."
-                ):
-
-                    st.session_state.ocr_results[
-                        "PaddleOCR"
-                    ] = cached_paddleocr(
-                        image_bytes,
-                        min_confidence
-                    )
-
-                st.session_state.paddle_error = None
-
-            except Exception as error:
-
-                error_text = str(
-                    error
-                )
-
-                st.session_state.paddle_error = (
-                    error_text
-                )
-
-                st.session_state.ocr_results[
-                    "PaddleOCR"
-                ] = {
-                    "success": False,
-                    "error": error_text
-                }
-
-
-# ==========================================================
-# RUN BOTH ENGINES
-#
-# IMPORTANT:
-# This does NOT clear existing results.
-# ==========================================================
-
-if run_both:
-
-    # ------------------------------------------------------
-    # EASY OCR
-    # ------------------------------------------------------
+def execute_easy():
 
     try:
 
@@ -1778,13 +1163,16 @@ if run_both:
             "Running EasyOCR..."
         ):
 
-            st.session_state.ocr_results[
-                "EasyOCR"
-            ] = cached_easyocr(
+            result = run_easyocr(
                 image_bytes,
-                min_confidence,
-                refine_boxes
+                min_confidence
             )
+
+        st.session_state.ocr_results[
+            "EasyOCR"
+        ] = result
+
+        return True
 
     except Exception as error:
 
@@ -1795,24 +1183,33 @@ if run_both:
             "error": str(error)
         }
 
-    # ------------------------------------------------------
-    # PADDLE OCR
-    # ------------------------------------------------------
+        return False
+
+
+# ============================================================
+# RUN PADDLE OCR
+# ============================================================
+
+def execute_paddle():
 
     try:
 
         with st.spinner(
-            "Running PaddleOCR..."
+            "Loading PaddleOCR CPU model and running OCR..."
         ):
 
-            st.session_state.ocr_results[
-                "PaddleOCR"
-            ] = cached_paddleocr(
+            result = run_paddleocr(
                 image_bytes,
                 min_confidence
             )
 
+        st.session_state.ocr_results[
+            "PaddleOCR"
+        ] = result
+
         st.session_state.paddle_error = None
+
+        return True
 
     except Exception as error:
 
@@ -1831,10 +1228,53 @@ if run_both:
             "error": error_text
         }
 
+        return False
 
-# ==========================================================
+
+# ============================================================
+# SELECTED ENGINE
+# ============================================================
+
+if run_selected:
+
+    if engine == "EasyOCR":
+
+        if execute_easy():
+
+            st.success(
+                "EasyOCR completed successfully."
+            )
+
+    elif engine == "PaddleOCR":
+
+        if execute_paddle():
+
+            st.success(
+                "PaddleOCR completed successfully."
+            )
+
+    else:
+
+        if "EasyOCR" not in st.session_state.ocr_results:
+            execute_easy()
+
+        if "PaddleOCR" not in st.session_state.ocr_results:
+            execute_paddle()
+
+
+# ============================================================
+# RUN BOTH
+# ============================================================
+
+if run_both:
+
+    execute_easy()
+    execute_paddle()
+
+
+# ============================================================
 # RESULTS
-# ==========================================================
+# ============================================================
 
 results = st.session_state.ocr_results
 
@@ -1847,9 +1287,9 @@ if results:
     )
 
 
-# ==========================================================
-# SINGLE ENGINE VIEW
-# ==========================================================
+# ============================================================
+# SINGLE ENGINE
+# ============================================================
 
 if engine in (
     "EasyOCR",
@@ -1864,12 +1304,6 @@ if engine in (
 
         st.info(
             f"{engine} has not been run yet."
-        )
-
-        st.caption(
-            "Run the selected engine above. "
-            "Previous results from the other engine "
-            "will remain available."
         )
 
     elif not result.get(
@@ -1891,8 +1325,7 @@ if engine in (
         if engine == "PaddleOCR":
 
             st.warning(
-                "PaddleOCR is currently unavailable "
-                "in this Python environment. "
+                "PaddleOCR is unavailable. "
                 "EasyOCR remains available."
             )
 
@@ -1901,11 +1334,6 @@ if engine in (
         detections = result.get(
             "detections",
             []
-        )
-
-        extracted_text = result.get(
-            "text",
-            ""
         )
 
         confidence = result.get(
@@ -1918,8 +1346,8 @@ if engine in (
             0.0
         )
 
-        metric1, metric2, metric3 = (
-            st.columns(3)
+        metric1, metric2, metric3 = st.columns(
+            3
         )
 
         with metric1:
@@ -1939,17 +1367,17 @@ if engine in (
         with metric3:
 
             st.metric(
-                "Processing Time",
-                f"{elapsed:.2f} sec"
+                "OCR Time",
+                f"{elapsed:.2f}s"
             )
 
-        # --------------------------------------------------
-        # Detection image
-        # --------------------------------------------------
+        # ----------------------------------------------------
+        # DETECTION MAP
+        # ----------------------------------------------------
 
         if show_boxes:
 
-            detection_image = draw_detections(
+            detection_image = draw_boxes(
                 bgr_image,
                 detections
             )
@@ -1963,21 +1391,19 @@ if engine in (
 
             detection_image = rgb_image
 
-        result_col1, result_col2 = (
-            st.columns(
-                [1.1, 0.9]
-            )
+        result_col1, result_col2 = st.columns(
+            [1.1, 0.9]
         )
 
         with result_col1:
 
             st.caption(
-                f"{engine} detected text regions"
+                f"{engine} detection map"
             )
 
             st.image(
                 detection_image,
-                use_container_width=True
+                width="stretch"
             )
 
         with result_col2:
@@ -1988,16 +1414,19 @@ if engine in (
 
             st.text_area(
                 "OCR result",
-                value=extracted_text,
+                value=result.get(
+                    "text",
+                    ""
+                ),
                 height=400,
                 label_visibility="collapsed",
-                key=f"{engine}_single_output"
+                key=f"{engine}_single_result"
             )
 
 
-# ==========================================================
-# COMPARE ENGINES VIEW
-# ==========================================================
+# ============================================================
+# COMPARE ENGINES
+# ============================================================
 
 else:
 
@@ -2009,31 +1438,42 @@ else:
         "PaddleOCR"
     )
 
-    compare_col1, compare_col2 = (
-        st.columns(2)
+    compare_col1, compare_col2 = st.columns(
+        2
     )
 
-
-    # ======================================================
+    # --------------------------------------------------------
     # EASY OCR
-    # ======================================================
+    # --------------------------------------------------------
 
     with compare_col1:
 
-        st.markdown(
-            """
-            <div class="engine-card">
-                <div class="engine-name">
-                    EasyOCR
-                </div>
-                <div class="engine-description">
-                    General-purpose OCR engine with
-                    refined document text boxes.
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        st.html("""
+<div style="
+    background-color: #1b1e26;
+    border: 1px solid #30343d;
+    border-radius: 12px;
+    padding: 25px;
+    color: white;
+">
+    <div style="
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 18px;
+    ">
+        EasyOCR
+    </div>
+
+    <div style="
+        font-size: 16px;
+        line-height: 1.6;
+        color: #e5e7eb;
+    ">
+        General-purpose OCR engine<br>
+        for document text recognition.
+    </div>
+</div>
+""")
 
         if not easy_result:
 
@@ -2065,9 +1505,9 @@ else:
             )
 
             st.caption(
-                f"Text regions: "
+                f"Regions: "
                 f"{len(easy_result.get('detections', []))}"
-                f" · Processing time: "
+                f" · Time: "
                 f"{easy_result.get('time', 0):.2f}s"
             )
 
@@ -2082,55 +1522,63 @@ else:
                 key="easy_compare_output"
             )
 
-
-    # ======================================================
+    # --------------------------------------------------------
     # PADDLE OCR
-    # ======================================================
+    # --------------------------------------------------------
 
     with compare_col2:
 
-        st.markdown(
-            """
-            <div class="engine-card">
-                <div class="engine-name">
-                    PaddleOCR
-                </div>
-                <div class="engine-description">
-                    Document-oriented OCR engine.
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+     st.html("""
+<div style="
+    background-color: #1b1e26;
+    border: 1px solid #30343d;
+    border-radius: 12px;
+    padding: 25px;
+    color: white;
+">
+    <div style="
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 18px;
+    ">
+        PaddleOCR
+    </div>
 
-        if not paddle_result:
+    <div style="
+        font-size: 16px;
+        line-height: 1.6;
+        color: #e5e7eb;
+    ">
+        CPU-optimized document OCR<br>
+        using PP-OCRv5 mobile models.
+    </div>
+</div>
+""")
+
+
+    if not paddle_result:
 
             st.info(
                 "PaddleOCR has not been run yet."
             )
 
-        elif not paddle_result.get(
+    elif not paddle_result.get(
             "success",
             False
         ):
 
             st.warning(
-                "PaddleOCR is unavailable "
-                "in the current environment."
+                "PaddleOCR failed."
             )
 
             st.code(
                 paddle_result.get(
                     "error",
-                    "PaddleOCR failed."
+                    "Unknown error"
                 )
             )
 
-            st.caption(
-                "This does not affect EasyOCR."
-            )
-
-        else:
+    else:
 
             st.metric(
                 "Confidence",
@@ -2138,9 +1586,9 @@ else:
             )
 
             st.caption(
-                f"Text regions: "
+                f"Regions: "
                 f"{len(paddle_result.get('detections', []))}"
-                f" · Processing time: "
+                f" · Time: "
                 f"{paddle_result.get('time', 0):.2f}s"
             )
 
@@ -2156,13 +1604,20 @@ else:
             )
 
 
-    # ======================================================
-    # VISUAL COMPARISON
-    # ======================================================
+# ============================================================
+# DETECTION MAPS
+# ============================================================
+
+if (
+    engine == "Compare Engines"
+):
 
     if (
         easy_result
-        and easy_result.get("success", False)
+        and easy_result.get(
+            "success",
+            False
+        )
     ):
 
         st.markdown(
@@ -2170,7 +1625,7 @@ else:
             unsafe_allow_html=True
         )
 
-        easy_image = draw_detections(
+        easy_image = draw_boxes(
             bgr_image,
             easy_result.get(
                 "detections",
@@ -2185,13 +1640,15 @@ else:
 
         st.image(
             easy_image,
-            use_container_width=True
+            width="stretch"
         )
-
 
     if (
         paddle_result
-        and paddle_result.get("success", False)
+        and paddle_result.get(
+            "success",
+            False
+        )
     ):
 
         st.markdown(
@@ -2199,7 +1656,7 @@ else:
             unsafe_allow_html=True
         )
 
-        paddle_image = draw_detections(
+        paddle_image = draw_boxes(
             bgr_image,
             paddle_result.get(
                 "detections",
@@ -2214,13 +1671,15 @@ else:
 
         st.image(
             paddle_image,
-            use_container_width=True
+            width="stretch"
         )
 
 
-    # ======================================================
-    # COMPARISON TABLE
-    # ======================================================
+# ============================================================
+# COMPARISON TABLE
+# ============================================================
+
+if engine == "Compare Engines":
 
     st.markdown(
         '<div class="section-title">Engine Comparison</div>',
@@ -2229,10 +1688,10 @@ else:
 
     rows = []
 
-    for name in [
+    for name in (
         "EasyOCR",
         "PaddleOCR"
-    ]:
+    ):
 
         result = results.get(
             name
@@ -2258,7 +1717,7 @@ else:
             rows.append(
                 {
                     "Engine": name,
-                    "Status": "Unavailable",
+                    "Status": "Failed",
                     "Regions": "—",
                     "Confidence": "—",
                     "Time": "—"
@@ -2284,65 +1743,33 @@ else:
                 }
             )
 
-    st.table(
-        rows
-    )
+    st.table(rows)
 
 
-# ==========================================================
-# PADDLE DIAGNOSTIC
-# ==========================================================
+# ============================================================
+# PADDLE ERROR
+# ============================================================
 
-if (
-    st.session_state.paddle_error
-):
+if st.session_state.paddle_error:
 
-    paddle_error_text = (
-        st.session_state.paddle_error
-    )
-
-    if (
-        "ConvertPirAttribute2RuntimeAttribute"
-        in paddle_error_text
-        or "onednn"
-        in paddle_error_text.lower()
-        or "mkldnn"
-        in paddle_error_text.lower()
-        or "pir::"
-        in paddle_error_text
+    with st.expander(
+        "PaddleOCR diagnostic information"
     ):
 
-        with st.expander(
-            "Why is PaddleOCR unavailable?"
-        ):
+        st.warning(
+            "PaddleOCR encountered an error. "
+            "EasyOCR is independent and can continue "
+            "working."
+        )
 
-            st.markdown(
-                """
-                **PaddleOCR encountered a
-                PaddlePaddle runtime compatibility
-                error.**
-
-                This occurs inside the PaddlePaddle
-                execution runtime rather than in the
-                OCR result parser.
-
-                The application disables the
-                oneDNN/MKLDNN execution path where
-                possible and keeps PaddleOCR failure
-                isolated from EasyOCR.
-
-                EasyOCR can continue working normally.
-                """
-            )
-
-            st.code(
-                paddle_error_text
-            )
+        st.code(
+            st.session_state.paddle_error
+        )
 
 
-# ==========================================================
+# ============================================================
 # EXPORT
-# ==========================================================
+# ============================================================
 
 successful_results = {
     name: result
@@ -2357,13 +1784,11 @@ successful_results = {
 if successful_results:
 
     st.markdown(
-        '<div class="section-title">Export</div>',
+        '<div class="section-title">Export Results</div>',
         unsafe_allow_html=True
     )
 
-    for name, result in (
-        successful_results.items()
-    ):
+    for name, result in successful_results.items():
 
         safe_name = (
             name.lower()
@@ -2373,11 +1798,13 @@ if successful_results:
             )
         )
 
+        original_name = os.path.splitext(
+            uploaded_file.name
+        )[0]
+
         filename = (
-            os.path.splitext(
-                uploaded_file.name
-            )[0]
-            + f"_{safe_name}_ocr.txt"
+            f"{original_name}_"
+            f"{safe_name}_ocr.txt"
         )
 
         st.download_button(
@@ -2388,23 +1815,29 @@ if successful_results:
             ),
             file_name=filename,
             mime="text/plain",
-            use_container_width=True,
+            width="stretch",
             key=f"download_{safe_name}"
         )
 
 
-# ==========================================================
+# ============================================================
 # FOOTER
-# ==========================================================
+# ============================================================
 
 st.markdown(
     """
     <div class="footer">
+
         Day 23 · Document OCR Studio
+
         <br>
+
         EasyOCR · PaddleOCR · OpenCV · Streamlit
+
         <br><br>
+
         Developed by Hadeed Jalani
+
     </div>
     """,
     unsafe_allow_html=True

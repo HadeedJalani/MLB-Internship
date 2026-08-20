@@ -1,0 +1,12 @@
+streamlit
+easyocr
+opencv-python-headless
+pillow
+numpy
+pandas
+
+paddlepaddle==3.2.2
+paddleocr==3.2.0
+paddlex==3.2.0
+
+rapidocr-onnxruntime==1.4.4

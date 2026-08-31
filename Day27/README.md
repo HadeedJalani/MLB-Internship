@@ -80,3 +80,4 @@ For example:
 ```text
 Person → 92%
 Bounding Box → (x1, y1, x2, y2)
+

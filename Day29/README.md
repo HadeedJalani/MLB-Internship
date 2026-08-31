@@ -233,12 +233,13 @@ Through this project, hands-on experience was gained with:
 - Debugging a subtle Markdown/HTML rendering issue caused by string indentation
 
 ---
----
 
-##LIVE-DEMO
+
+## LIVE-DEMO
+---
 
 https://mlb-internship-day29.streamlit.app/
----
+
 
 ## 👨‍💻 Author
 

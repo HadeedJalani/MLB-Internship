@@ -244,7 +244,6 @@ https://mlb-internship-day29.streamlit.app/
 ## 👨‍💻 Author
 
 **Hadeed Jalani**
-Final-Year Computer Science Student, University of Lahore
 
 Focused on: **Artificial Intelligence • Machine Learning • Computer Vision • Full-Stack Development**
 

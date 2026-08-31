@@ -12,7 +12,20 @@ import cv2
 import streamlit as st
 from ultralytics import YOLO
 
-MODEL_PATH = os.path.join("models", "best.pt")
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(APP_DIR, "models", "best.pt")
+
+
+def show_image(image, **kwargs):
+    """Wrapper so this works whether the installed Streamlit is old or new.
+
+    Newer Streamlit (>=1.29 roughly) wants use_container_width.
+    Older Streamlit only understands use_column_width.
+    """
+    try:
+        st.image(image, use_container_width=True, **kwargs)
+    except TypeError:
+        st.image(image, use_column_width=True, **kwargs)
 
 
 # ---------------------------------------------------------------------------
@@ -112,14 +125,14 @@ with tab_image:
         col1, col2 = st.columns(2)
         with col1:
             st.subheader("Original")
-            st.image(tmp_path, use_column_width=True)
+            show_image(tmp_path)
 
         with st.spinner("Running inference..."):
             annotated_rgb, detections = run_image_inference(model, tmp_path, conf_threshold, img_size)
 
         with col2:
             st.subheader("Detections")
-            st.image(annotated_rgb, use_column_width=True)
+            show_image(annotated_rgb)
 
         if detections:
             st.markdown("**Detected objects:**")

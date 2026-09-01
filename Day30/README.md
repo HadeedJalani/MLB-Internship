@@ -681,7 +681,7 @@ The current system provides a solid foundation for intelligent traffic analytics
 
 ### 🚀 Live Streamlit Application
 
-[Open Smart Vehicle Counting System](https://mlb-internship-mhgum6bhfkujukngqbt3jr.streamlit.app/)
+[Open Smart Vehicle Counting System](https://mlb-internship-day30.streamlit.app/)
 
 ### 💻 GitHub Repository
 

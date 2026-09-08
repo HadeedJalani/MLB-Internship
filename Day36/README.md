@@ -3,6 +3,9 @@
 
 **Author:** Hadeed Jalani
 
+**Livedemo:**
+https://mlb-internship-day36.streamlit.app/
+
 An intelligent traffic video analytics system built with **YOLOv8n, ByteTrack, OpenCV, and Streamlit**. The project detects and tracks vehicles in traffic footage, estimates their movement direction, identifies traffic violations, and presents the results through two visually distinct monitoring and analytics interfaces.
 
 This project is part of **Day 36 of the ML Bench Internship**, focusing on practical computer vision, object tracking, rule based event detection, video analytics, and interactive machine learning applications.

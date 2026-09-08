@@ -1,6 +1,5 @@
 # Day 36 | AI Traffic Violation Monitoring System
 
-### ML Bench Internship
 
 **Author:** Hadeed Jalani
 

@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.DS_Store
+
+# YOLO weights/cache
+*.pt
+*.onnx
+.ultralytics/
+
+# Local generated outputs
+outputs/**/*.mp4
+outputs/**/*.avi
+outputs/**/*.mov
+
+# Streamlit cache
+.streamlit/secrets.toml

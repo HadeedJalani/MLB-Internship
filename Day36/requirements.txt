@@ -1,0 +1,8 @@
+streamlit==1.50.0
+ultralytics>=8.3.0,<9
+opencv-python-headless>=4.10,<5
+numpy>=1.26,<3
+pandas>=2.2,<3
+imageio>=2.36,<3
+imageio-ffmpeg>=0.5,<1
+Pillow>=10,<12

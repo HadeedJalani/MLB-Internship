@@ -1,0 +1,15 @@
+{
+  "direction": {
+    "name": "up",
+    "angle_threshold_deg": 135.0,
+    "confirm_window": 14,
+    "confirm_ratio": 0.85
+  },
+  "restricted_zone": {
+    "x_min": 0.15,
+    "x_max": 0.75,
+    "y_min": 0.85,
+    "y_max": 1.0
+  },
+  "direction_roi": null
+}

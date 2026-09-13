@@ -1,0 +1,16 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.pt
+.ultralytics/
+outputs/*.mp4
+outputs/*.avi
+outputs/*.mov
+outputs/*.mkv
+outputs/*.png
+sample_videos/*.mp4
+sample_videos/*.avi
+sample_videos/*.mov
+sample_videos/*.mkv
+.streamlit/secrets.toml

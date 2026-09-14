@@ -1,514 +1,363 @@
-Markdown
+# Day 39 | Optimized Security Monitoring System
 
-````
-# Day 39 — Optimized Security Monitoring System
+<p align="center">
+  <strong>Computer Vision • Object Detection • Object Tracking • ROI Analytics • Event Monitoring</strong>
+</p>
 
-> **An optimized computer-vision pipeline for real-time-style security monitoring, person tracking, region-of-interest analysis, and entry/exit event reporting using YOLOv8 and Ultralytics tracking.**
+<p align="center">
+  An optimized security-monitoring pipeline built with YOLOv8, Ultralytics tracking, OpenCV, Pandas, and Streamlit.
+</p>
 
----
+<p align="center">
 
-## 📌 Project Overview
+![Python](https://img.shields.io/badge/Python-3.13-3776AB?style=for-the-badge\&logo=python\&logoColor=white)
+![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-111111?style=for-the-badge)
+![OpenCV](https://img.shields.io/badge/OpenCV-Computer%20Vision-5C3EE8?style=for-the-badge\&logo=opencv\&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-App-FF4B4B?style=for-the-badge\&logo=streamlit\&logoColor=white)
+![Pandas](https://img.shields.io/badge/Pandas-Analytics-150458?style=for-the-badge\&logo=pandas\&logoColor=white)
 
-Day 39 builds upon the **Day 38 Security Monitoring project** and focuses on improving its performance, configurability, tracking reliability, reporting, and user experience.
-
-The system uses **YOLOv8n** for person detection and Ultralytics-supported tracking algorithms such as **ByteTrack** and **BoT-SORT** to monitor people moving through a defined region of interest.
-
-Instead of only detecting people in individual frames, this project maintains object identities across video frames and records meaningful security events, including:
-
-- When a person enters the monitoring region.
-- When a person exits the monitoring region.
-- How long a person remains inside the region.
-- How many unique people were tracked.
-- The peak number of people inside the region.
-- The average number of people inside the region.
-- The processing speed and number of processed frames.
-
-The application provides a Streamlit interface for uploading images and videos, adjusting inference parameters, viewing processed results, and downloading generated reports.
+</p>
 
 ---
 
-## 🎯 Objectives
+## Overview
 
-The main objectives of Day 39 are to optimize and improve the previous security-monitoring pipeline by introducing:
+**Day 39** extends the previous security-monitoring pipeline into a more configurable and analytics-focused computer-vision application.
 
-1. **Configurable detection thresholds**
-2. **Inference-speed optimization**
-3. **Improved tracking configuration**
-4. **ROI-based monitoring**
-5. **Persistent tracking IDs**
-6. **Entry and exit event detection**
-7. **Dwell-time analysis**
-8. **Tracking trails**
-9. **CSV event reporting**
-10. **Image and video support**
-11. **Better error handling**
-12. **A cleaner and more professional interface**
-13. **Automated testing**
-14. **Crossing-case tracking evaluation**
+The system detects people using **YOLOv8n**, maintains tracking identities across video frames using **ByteTrack** or **BoT-SORT**, monitors a configurable **Region of Interest (ROI)**, and converts movement through that region into structured security events.
+
+The application provides:
+
+* Person detection
+* Persistent object tracking
+* ROI monitoring
+* Entry and exit detection
+* Dwell-time calculation
+* Tracking trails
+* Occupancy analytics
+* Configurable inference parameters
+* Frame-skip optimization
+* CSV event reporting
+* Image and video processing
+* Crossing-case tracker evaluation
+* Streamlit-based interaction
+* Automated utility tests
+
+The goal is to demonstrate how a basic object-detection pipeline can evolve into a structured monitoring and analytics system.
 
 ---
 
-## 🚀 Main Features
+## Architecture
 
-### 1. Person Detection
+```mermaid
+flowchart TD
+    A[Image / Video Input] --> B[Streamlit Interface]
+    B --> C[Configuration]
+    C --> D[YOLOv8n Person Detection]
+    D --> E[ByteTrack / BoT-SORT]
+    E --> F[Bounding Box Centers]
+    F --> G[ROI Evaluation]
+    G --> H{ROI State}
+    H -->|Outside → Inside| I[ENTRY Event]
+    H -->|Inside → Outside| J[EXIT Event]
+    I --> K[Dwell Time Analysis]
+    J --> K
+    K --> L[Statistics]
+    L --> M[Processed Video]
+    L --> N[CSV Event Report]
+```
 
-The system uses **YOLOv8n** to detect people in uploaded images and videos.
+---
 
-Only the `person` class is processed:
+## Core Capabilities
+
+### Person Detection
+
+The system uses **YOLOv8n** to detect people in images and videos.
+
+Only the COCO `person` class is processed:
 
 ```python
 classes=[0]
-````
-
-In the COCO dataset, class `0` represents a person.
-
-The system draws bounding boxes around detected people and displays their tracking IDs during video processing.
-
-### 2. Persistent Object Tracking
-
-For video input, the system uses Ultralytics tracking functionality to maintain identities across frames.
-
-Supported tracking algorithms:
-
-* ByteTrack
-
-* BoT-SORT
-
-Each detected person receives a tracking ID, for example:
-
 ```
+
+Restricting inference to the person class reduces unnecessary detections and keeps the pipeline focused on security-monitoring scenarios.
+
+---
+
+### Persistent Object Tracking
+
+For video processing, the application supports:
+
+| Tracker       | Purpose                                                  |
+| ------------- | -------------------------------------------------------- |
+| **ByteTrack** | Fast and efficient multi-object tracking                 |
+| **BoT-SORT**  | Tracking with stronger appearance and motion association |
+
+Each tracked person receives an ID:
+
+```text
 ID 1
 ID 2
 ID 3
 ```
 
-The tracking ID helps the system distinguish between different people and calculate entry, exit, and dwell-time events.
+These IDs allow the application to associate detections across frames and calculate events such as entry, exit, and dwell time.
 
-### 3. Region of Interest Monitoring
+> Tracking IDs represent temporary object associations within a video. They do not represent real-world identities.
 
-The system supports monitoring a specific rectangular region called the Region of Interest, or ROI.
+---
 
-The ROI allows the application to focus on a particular area instead of treating the entire video frame as the monitoring zone.
+## Region of Interest
 
-For example, the ROI could represent:
+The system supports rectangular **Regions of Interest** for focused monitoring.
 
-* A building entrance
+Typical applications include:
 
-* A restricted hallway
+* Building entrances
+* Security checkpoints
+* Restricted corridors
+* Warehouses
+* Laboratories
+* Office entrances
+* Parking areas
 
-* A warehouse section
+The ROI is represented as:
 
-* A parking entrance
-
-* A security checkpoint
-
-* A laboratory entrance
-
-* A private office area
-
-A person is considered to be inside the ROI when the center point of their bounding box falls within the configured region.
-
-The ROI follows this format:
-
-Python
-
-Run
-
-```
+```text
 (x1, y1, x2, y2)
 ```
 
-Where:
+A person is considered inside the ROI when the center point of their bounding box falls within the configured boundaries.
 
-* `x1` is the left coordinate.
+---
 
-* `y1` is the top coordinate.
+## Entry and Exit Detection
 
-* `x2` is the right coordinate.
+The system maintains the ROI state of each tracked person.
 
-* `y2` is the bottom coordinate.
+The main state transitions are:
 
-### 4. Entry and Exit Event Detection
-
-The application tracks whether each person is currently inside or outside the ROI.
-
-An `ENTRY` event is generated when a person changes from outside the ROI to inside the ROI.
-
-An `EXIT` event is generated when a person changes from inside the ROI to outside the ROI.
-
-Example event sequence:
-
+```text
+Outside → Inside  = ENTRY
+Inside → Outside  = EXIT
 ```
+
+Example:
+
+```text
 Person ID 4 → ENTRY
 Person ID 4 → EXIT
 ```
 
-Each event includes information such as:
+Each event can contain:
 
 * Track ID
-
 * Event type
-
-* ROI name
-
+* ROI
 * Frame number
-
 * Timestamp
-
 * Entry time
-
 * Exit time
-
 * Duration
+* Status
 
-* Event status
+This converts frame-level detections into structured security events.
 
-This makes the system more useful for security monitoring than a simple people detector.
+---
 
-### 5. Dwell-Time Calculation
+## Dwell-Time Analysis
 
-Dwell time represents how long a person remains inside the monitoring region.
+Dwell time represents the amount of time a tracked person remains inside the ROI.
 
-The system calculates dwell time using:
+The calculation is:
 
-```
-Dwell time = Exit timestamp − Entry timestamp
-```
-
-For example:
-
-```
-Entry time: 12.50 seconds
-Exit time: 20.75 seconds
-
-Dwell time: 8.25 seconds
+```text
+Dwell Time = Exit Time - Entry Time
 ```
 
-Dwell-time information can help identify:
+Example:
 
-* Long stays in restricted areas
-
-* Unusual waiting behavior
-
-* People remaining inside a zone for extended periods
-
-* Potential security incidents requiring further review
-
-### 6. Confidence Threshold Control
-
-The Streamlit sidebar provides a confidence threshold slider.
-
-The confidence threshold determines the minimum confidence required for a detection to be considered valid.
-
-A higher confidence threshold generally produces fewer weak detections, but it may also miss people who are:
-
-* Far from the camera
-
-* Partially occluded
-
-* In poor lighting
-
-* Blurred
-
-* Small in the frame
-
-A lower confidence threshold may detect more people, but it can also increase false positives.
-
-The default value is:
-
+```text
+Entry Time: 12.50 seconds
+Exit Time:  20.75 seconds
+Dwell Time:  8.25 seconds
 ```
+
+Dwell-time analysis can help identify prolonged occupancy and unusual waiting behavior within monitored areas.
+
+---
+
+## Configurable Inference
+
+The Streamlit interface allows the user to adjust inference parameters without changing the source code.
+
+### Confidence Threshold
+
+Controls the minimum confidence required for a detection.
+
+Default:
+
+```text
 0.45
 ```
 
-Recommended starting range:
+Typical range:
 
+```text
+0.35 - 0.60
 ```
-0.35 – 0.60
-```
 
-### 7. IoU Threshold Control
+Lower values may detect more objects but can increase false positives. Higher values may improve precision but can miss difficult detections.
 
-The IoU threshold is used during non-maximum suppression.
+### IoU Threshold
 
-IoU stands for Intersection over Union.
+Controls overlap handling during non-maximum suppression.
 
-It measures the overlap between bounding boxes.
+Default:
 
-The IoU threshold helps determine when overlapping detections should be treated as duplicate detections.
-
-The application allows the user to adjust this value through the Streamlit sidebar.
-
-The default value is:
-
-```
+```text
 0.50
 ```
 
-### 8. Inference Image-Size Control
+### Inference Image Size
 
-The application allows the user to select the inference image size:
+Available options:
 
-```
+```text
 320
 416
 512
 640
 ```
 
-The inference image size affects the balance between speed and detection quality.
+| Size | Typical Behavior                |
+| ---: | ------------------------------- |
+|  320 | Fastest, lower detail           |
+|  416 | Faster processing               |
+|  512 | Balanced option                 |
+|  640 | Higher detail, slower inference |
 
-|
-Image Size
+---
 
-|
+## Frame-Skip Optimization
 
-Typical Behavior
+Video processing can be computationally expensive when every frame is analyzed.
 
-|
-| --- | --- |
-|
+The application supports processing every Nth frame.
 
-320
-
-|
-
-Faster processing, lower detail
-
-|
-|
-
-416
-
-|
-
-Good speed for many videos
-
-|
-|
-
-512
-
-|
-
-Balanced default option
-
-|
-|
-
-640
-
-|
-
-More detail, potentially slower processing
-
-|
-
-Smaller image sizes may be useful for:
-
-* Long videos
-
-* CPU-based systems
-
-* Real-time-style demonstrations
-
-* Low-resolution input footage
-
-Larger image sizes may be useful when people appear small in the frame.
-
-### 9. Frame-Skip Optimization
-
-Video processing can be expensive when every frame is analyzed.
-
-The application supports frame skipping through the following control:
-
-```
-Process every Nth frame
-```
-
-For example:
-
-```
+```text
 frame_skip = 1
 ```
 
 Processes every frame.
 
-```
+```text
 frame_skip = 2
 ```
 
 Processes every second frame.
 
-```
+```text
 frame_skip = 3
 ```
 
 Processes every third frame.
 
-Frame skipping can improve processing speed, especially for long videos.
+Frame skipping can improve processing speed, especially for longer videos. Excessive skipping can reduce tracking stability and event-timing precision.
 
-However, excessive frame skipping may reduce:
+### Recommended Values
 
-* Tracking accuracy
+**Accuracy-focused**
 
-* Entry/exit timing precision
-
-* Detection of short events
-
-* ID consistency during fast movement
-
-For the most accurate results, use:
-
-```
-frame_skip = 1
+```text
+Frame Skip: 1
 ```
 
-For faster demonstrations, try:
+**Faster demonstration**
 
+```text
+Frame Skip: 2
 ```
-frame_skip = 2
-```
 
-### 10. Tracking Trails
+---
 
-The application can display the recent movement path of each tracked person.
+## Tracking Trails
 
-Tracking trails are created by storing recent center points for each tracking ID.
+The application can display recent movement paths for tracked people.
 
-They help visualize:
+Tracking trails help visualize:
 
 * Movement direction
-
 * Walking paths
-
-* Entry and exit behavior
-
+* ROI transitions
 * Tracking consistency
+* Potential ID switches
 
-* Possible ID switches
+Trail history is bounded to avoid unlimited memory growth during long video processing.
 
-Tracking trails can be enabled or disabled from the Streamlit sidebar.
+---
 
-### 11. Processing Statistics
+## Analytics Dashboard
 
-After video processing, the application displays several statistics.
+After processing a video, the application provides key performance and monitoring metrics.
 
-#### Peak ROI Count
+| Metric             | Description                             |
+| ------------------ | --------------------------------------- |
+| Peak ROI Count     | Maximum number of people inside the ROI |
+| Average ROI Count  | Average ROI occupancy                   |
+| Unique IDs         | Total distinct tracking IDs             |
+| Entries            | Number of entry events                  |
+| Exits              | Number of exit events                   |
+| Average Dwell Time | Average time spent inside the ROI       |
+| Processing FPS     | Approximate processing speed            |
+| Frames Processed   | Frames read from the source video       |
+| Sampled Frames     | Frames passed through the model         |
 
-The maximum number of people detected inside the ROI at one time.
+Example output:
 
-#### Unique Tracked IDs
-
-The total number of distinct tracking IDs observed during processing.
-
-#### Entries
-
-The number of recorded `ENTRY` events.
-
-#### Exits
-
-The number of recorded `EXIT` events.
-
-#### Average Dwell Time
-
-The average time people remained inside the ROI.
-
-#### Processing FPS
-
-The approximate number of frames processed per second by the application.
-
-#### Frames Processed
-
-The total number of frames read from the input video.
-
-#### Sampled Frames
-
-The number of frames actually passed through the detection and tracking model after frame skipping.
-
-#### Average ROI Count
-
-The average number of people detected inside the ROI across sampled frames.
-
-## 🧠 System Workflow
-
-The complete processing pipeline follows this sequence:
-
-```
-Input Image or Video
-        │
-        ▼
-Upload through Streamlit
-        │
-        ▼
-Read configuration settings
-        │
-        ├── Confidence threshold
-        ├── IoU threshold
-        ├── Inference image size
-        ├── Frame skip
-        └── Tracking algorithm
-        │
-        ▼
-YOLOv8 Person Detection
-        │
-        ▼
-Object Tracking
-        │
-        ▼
-Calculate Bounding-Box Centers
-        │
-        ▼
-Check ROI Membership
-        │
-        ▼
-Compare Current and Previous ROI State
-        │
-        ├── Outside → Inside = ENTRY
-        └── Inside → Outside = EXIT
-        │
-        ▼
-Calculate Dwell Time
-        │
-        ▼
-Draw Bounding Boxes, IDs, ROI, and Trails
-        │
-        ▼
-Generate Processed Video
-        │
-        ▼
-Generate CSV Event Report
-        │
-        ▼
-Display Metrics and Download Results
+```text
+Peak ROI Count:       5
+Unique Tracked IDs:  12
+Entries:             12
+Exits:               12
+Average Dwell Time:  8.42 seconds
+Processing FPS:      6.75
+Frames Processed:    900
+Sampled Frames:      900
+Average ROI Count:   2.31
 ```
 
-## 📁 Project Structure
+Actual values depend on the input video, hardware, model configuration, and tracker behavior.
 
-```
+---
+
+# Project Structure
+
+```text
 Day-39/
 │
 ├── app.py
-│   └── Streamlit user interface and application controls
+│   └── Streamlit interface
 │
 ├── security_monitoring.py
-│   └── Detection, tracking, ROI processing, event logging,
-│       dwell-time calculation, video generation, and statistics
-│
-├── requirements.txt
-│   └── Python dependencies required to run the project
-│
-├── README.md
-│   └── Project documentation and usage instructions
+│   └── Detection, tracking, ROI, events, analytics,
+│       video processing, and report generation
 │
 ├── test_day39.py
-│   └── Basic automated tests for ROI logic and event data types
+│   └── Automated utility tests
+│
+├── requirements.txt
+│   └── Python dependencies
+│
+├── README.md
+│   └── Project documentation
 │
 ├── .gitignore
-│   └── Files and folders excluded from Git tracking
+│   └── Git exclusions
 │
 ├── .streamlit/
 │   └── config.toml
-│       └── Streamlit theme and upload configuration
 │
 ├── sample_videos/
 │   ├── README.md
@@ -516,1079 +365,570 @@ Day-39/
 │   └── crossing_case_02.mp4
 │
 ├── outputs/
-│   └── Generated processed videos and CSV reports
+│   └── Generated videos and CSV reports
 │
 └── screenshots/
-    └── Screenshots and demonstration evidence
+    └── Application screenshots
 ```
 
-## 🗂️ File Descriptions
+---
 
-### `app.py`
+# Technology Stack
 
-This file contains the Streamlit interface.
+| Technology                | Role                             |
+| ------------------------- | -------------------------------- |
+| **Python**                | Application development          |
+| **YOLOv8n**               | Person detection                 |
+| **Ultralytics**           | Detection and tracking framework |
+| **ByteTrack**             | Multi-object tracking            |
+| **BoT-SORT**              | Multi-object tracking            |
+| **OpenCV**                | Image and video processing       |
+| **NumPy**                 | Numerical operations             |
+| **Pandas**                | Event data and analytics         |
+| **Pillow**                | Image handling                   |
+| **Streamlit**             | Interactive web interface        |
+| **pytest / Python tests** | Utility validation               |
 
-Responsibilities include:
+---
 
-* Configuring the Streamlit page
+# File Responsibilities
 
-* Displaying sidebar controls
+## `app.py`
 
-* Uploading images
+The Streamlit application handles:
 
-* Uploading videos
+* Page configuration
+* Image uploads
+* Video uploads
+* Sidebar controls
+* Tracker selection
+* Processing controls
+* Progress feedback
+* Analytics display
+* Download functionality
+* Error reporting
 
-* Calling image-processing functions
+---
 
-* Calling video-processing functions
+## `security_monitoring.py`
 
-* Displaying processed results
-
-* Showing processing statistics
-
-* Providing download buttons
-
-* Displaying errors and progress information
-
-The interface is divided into two tabs:
-
-1. Image Monitoring
-
-2. Video Monitoring
-
-### `security_monitoring.py`
-
-This is the main processing module.
-
-It contains the core computer-vision pipeline, including:
+The core computer-vision module contains:
 
 * YOLO model loading
-
-* ROI membership checks
-
-* Event dataframe normalization
-
-* ROI drawing
-
-* Bounding-box labels
-
-* Image detection
-
-* Video tracking
-
-* Entry and exit detection
-
+* Person detection
+* Object tracking
+* ROI evaluation
+* Entry detection
+* Exit detection
 * Dwell-time calculation
-
 * Tracking trails
-
+* Statistics generation
 * Processed-video creation
-
 * CSV report generation
 
-* Performance statistics
+Separating the processing layer from the user interface improves maintainability and testability.
 
-Separating this logic from `app.py` makes the project easier to maintain, test, and extend.
+---
 
-### `requirements.txt`
+## `test_day39.py`
 
-This file lists the required Python packages.
-
-Main dependencies include:
-
-* `streamlit`
-
-* `ultralytics`
-
-* `opencv-python`
-
-* `numpy`
-
-* `pandas`
-
-* `Pillow`
-
-* `lap`
-
-The `lap` package is included because Ultralytics tracking may require it for tracker-related operations.
-
-### `test_day39.py`
-
-This file contains basic tests for important utility functions.
-
-The tests verify:
+Contains automated checks for important utility logic, including:
 
 * ROI boundary behavior
-
 * Points outside the ROI
+* Empty ROI handling
+* Event dataframe structure
+* Event data types
 
-* Behavior when no ROI is provided
+---
 
-* Event dataframe column types
+## `.streamlit/config.toml`
 
-* Empty event dataframe behavior
+Contains Streamlit configuration.
 
-These tests help detect regressions when the project is modified.
+Example:
 
-### `.streamlit/config.toml`
-
-This file configures Streamlit.
-
-It currently:
-
-* Enables a dark theme
-
-* Allows larger uploaded files
-
-The upload limit is configured as:
-
-TOML
-
-```
+```toml
 [server]
 maxUploadSize = 500
 ```
 
-The value is measured in megabytes.
+The value represents the maximum upload size in megabytes.
 
-### `sample_videos/`
+---
 
-This folder contains test videos.
+# Installation
 
-For the Day 39 crossing-case evaluation, add:
+## 1. Navigate to the Project
 
-```
-crossing_case_01.mp4
-crossing_case_02.mp4
-```
-
-The videos should contain people crossing paths or partially occluding one another.
-
-These videos are useful for evaluating:
-
-* Tracking-ID consistency
-
-* ID switches
-
-* Duplicate events
-
-* ROI count stability
-
-* Tracker performance
-
-* The effect of confidence and IoU settings
-
-### `outputs/`
-
-This folder stores generated files such as:
-
-```
-day39_processed_video.mp4
-day39_event_report.csv
-```
-
-Generated outputs should generally not be committed to GitHub unless they are small and specifically required as project evidence.
-
-### `screenshots/`
-
-This folder stores visual evidence for the project.
-
-Recommended screenshots include:
-
-1. Streamlit upload interface
-
-2. Sidebar optimization settings
-
-3. Processed video with tracking IDs
-
-4. ROI overlay
-
-5. Statistics dashboard
-
-6. CSV report download section
-
-7. Processed image output
-
-## 🛠️ Installation
-
-### Step 1: Open the Project Folder
-
-Open PowerShell and navigate to the project:
-
-PowerShell
-
-```
+```powershell
 cd "C:\path\to\Day-39"
 ```
 
-Replace the path with the actual location of your project folder.
+## 2. Create a Virtual Environment
 
-### Step 2: Create a Virtual Environment
-
-Using Python 3.13:
-
-PowerShell
-
-```
+```powershell
 py -3.13 -m venv .venv
 ```
 
-### Step 3: Activate the Virtual Environment
+## 3. Activate the Environment
 
-PowerShell
-
-```
+```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-If PowerShell blocks script execution, run PowerShell with the appropriate local execution-policy configuration or activate the environment from Command Prompt instead.
+## 4. Upgrade pip
 
-### Step 4: Upgrade pip
-
-PowerShell
-
-```
+```powershell
 python -m pip install --upgrade pip
 ```
 
-### Step 5: Install Dependencies
+## 5. Install Dependencies
 
-PowerShell
-
-```
+```powershell
 pip install -r requirements.txt
 ```
 
-The YOLO model file may be downloaded automatically by Ultralytics during the first inference run.
+Ultralytics may download the required YOLO model automatically during the first inference run.
 
-## ▶️ Running the Application
+---
 
-Start the Streamlit application:
+# Run the Application
 
-PowerShell
+Start Streamlit:
 
-```
+```powershell
 streamlit run app.py
 ```
 
-Streamlit normally opens the application at:
+Default address:
 
-```
+```text
 http://localhost:8501
 ```
 
-If port `8501` is already in use, run:
+To use another port:
 
-PowerShell
-
-```
+```powershell
 streamlit run app.py --server.port 8502
 ```
 
-## 🌐 Creating a Temporary Public URL
+---
 
-If you need to demonstrate the application remotely, install and configure ngrok.
+# Testing
 
-Then run:
+Run the Day 39 tests:
 
-PowerShell
-
-```
-ngrok http 8501
-```
-
-If the Streamlit application is running on port `8502`, use:
-
-PowerShell
-
-```
-ngrok http 8502
-```
-
-The generated ngrok URL can be used for temporary demonstrations.
-
-> Important: A public tunnel should only be used for temporary demonstrations. Do not upload private or sensitive video footage.
-
-## 🧪 Running Tests
-
-Run the test file from the project directory:
-
-PowerShell
-
-```
+```powershell
 python test_day39.py
 ```
 
-Expected output:
+Expected result:
 
-```
+```text
 Day 39 tests passed successfully.
 ```
 
-The tests are designed to validate the supporting logic without requiring a complete video-processing run.
+The tests focus on supporting logic and do not require a complete video-processing run.
 
-## 📤 Using the Application
+---
 
-### Image Workflow
+# Application Workflow
 
-1. Open the Image Monitoring tab.
+## Image Monitoring
 
+1. Open the Image Monitoring interface.
 2. Upload a JPG, JPEG, or PNG image.
+3. Start image monitoring.
+4. Review detected people.
+5. Download the processed image.
 
-3. Review the original image.
+## Video Monitoring
 
-4. Click Run image monitoring.
+1. Open the Video Monitoring interface.
+2. Upload a supported video.
+3. Configure confidence and IoU thresholds.
+4. Select the inference image size.
+5. Select ByteTrack or BoT-SORT.
+6. Configure frame skipping.
+7. Enable or disable tracking trails.
+8. Start video processing.
+9. Review the processed video.
+10. Review the analytics.
+11. Download the processed video.
+12. Download the CSV event report.
 
-5. Wait for YOLO inference to complete.
+---
 
-6. Review the processed image.
+# Recommended Configurations
 
-7. Check the number of detected people.
+## Accuracy Focused
 
-8. Download the processed image.
-
-### Video Workflow
-
-1. Open the Video Monitoring tab.
-
-2. Upload an MP4, MOV, AVI, or MKV file.
-
-3. Review the input video.
-
-4. Configure the processing settings from the sidebar.
-
-5. Select the tracking algorithm.
-
-6. Choose the inference image size.
-
-7. Set the confidence and IoU thresholds.
-
-8. Choose the frame-skip value.
-
-9. Enable or disable tracking trails.
-
-10. Click Run optimized video monitoring.
-
-11. Wait for processing to finish.
-
-12. Review the processed video.
-
-13. Review the statistics.
-
-14. Download the processed MP4 file.
-
-15. Download the CSV event report.
-
-## ⚙️ Recommended Settings
-
-### Accuracy-Oriented Settings
-
-Use these settings when tracking quality is more important than speed:
-
-```
-Confidence: 0.35 – 0.45
-IoU: 0.50
-Image size: 640
-Frame skip: 1
-Tracker: ByteTrack or BoT-SORT
-Tracking trails: Enabled
+```text
+Confidence: 0.35 - 0.45
+IoU:        0.50
+Image Size: 640
+Frame Skip: 1
+Tracker:    ByteTrack / BoT-SORT
+Trails:     Enabled
 ```
 
-### Speed-Oriented Settings
+## Balanced
 
-Use these settings for longer videos or systems with limited processing power:
-
-```
-Confidence: 0.45 – 0.60
-IoU: 0.50
-Image size: 320 or 416
-Frame skip: 2 or 3
-Tracker: ByteTrack
-Tracking trails: Disabled
-```
-
-### Balanced Settings
-
-A practical starting configuration is:
-
-```
+```text
 Confidence: 0.45
-IoU: 0.50
-Image size: 512
-Frame skip: 1
-Tracker: ByteTrack
-Tracking trails: Enabled
+IoU:        0.50
+Image Size: 512
+Frame Skip: 1
+Tracker:    ByteTrack
+Trails:     Enabled
 ```
 
-## 📄 CSV Event Report
+## Speed Focused
 
-The generated CSV report contains event-level information.
+```text
+Confidence: 0.45 - 0.60
+IoU:        0.50
+Image Size: 320 / 416
+Frame Skip: 2 - 3
+Tracker:    ByteTrack
+Trails:     Disabled
+```
 
-Example structure:
+The optimal configuration depends on video resolution, scene complexity, available hardware, and the desired balance between speed and accuracy.
 
-|
-Column
+---
 
-|
+# CSV Event Reporting
 
-Description
-
-|
-| --- | --- |
-|
-
-`track_id`
-
-|
-
-Unique tracking ID assigned to a person
-
-|
-|
-
-`event`
-
-|
-
-`ENTRY` or `EXIT`
-
-|
-|
-
-`roi`
-
-|
-
-Name of the monitored region
-
-|
-|
-
-`frame`
-
-|
-
-Frame where the event was detected
-
-|
-|
-
-`timestamp_s`
-
-|
-
-Event timestamp in seconds
-
-|
-|
-
-`entry_time_s`
-
-|
-
-Time when the person entered
-
-|
-|
-
-`exit_time_s`
-
-|
-
-Time when the person exited
-
-|
-|
-
-`duration_s`
-
-|
-
-Time spent inside the ROI
-
-|
-|
-
-`status`
-
-|
-
-Event or session status
-
-|
+The application generates a structured CSV report containing security events.
 
 Example:
 
-```
+```csv
 track_id,event,roi,frame,timestamp_s,entry_time_s,exit_time_s,duration_s,status
 7,ENTRY,ROI,150,6.00,6.00,,,active
 7,EXIT,ROI,310,12.40,6.00,12.40,6.40,completed
 ```
 
-The CSV can be opened using:
+## Report Fields
 
-* Microsoft Excel
+| Field          | Description                        |
+| -------------- | ---------------------------------- |
+| `track_id`     | Tracking ID assigned to the person |
+| `event`        | `ENTRY` or `EXIT`                  |
+| `roi`          | Monitored region                   |
+| `frame`        | Event frame number                 |
+| `timestamp_s`  | Event timestamp                    |
+| `entry_time_s` | Recorded entry time                |
+| `exit_time_s`  | Recorded exit time                 |
+| `duration_s`   | Time spent inside the ROI          |
+| `status`       | Event or session status            |
 
-* Google Sheets
+The report can be analyzed using Excel, Google Sheets, Pandas, or other data-analysis tools.
 
-* Pandas
+---
 
-* LibreOffice Calc
+# Crossing-Case Evaluation
 
-* Any standard text editor
+Day 39 introduces a dedicated evaluation scenario for tracking people who cross paths or become partially occluded.
 
-## 📊 Example Statistics
+The evaluation compares **ByteTrack** and **BoT-SORT** under the same video conditions.
 
-A completed video run may produce statistics similar to:
+### Evaluation Process
 
-```
-Peak people in ROI: 5
-Unique tracked IDs: 12
-Entries: 12
-Exits: 12
-Average dwell time: 8.42 seconds
-Processing FPS: 6.75
-Frames processed: 900
-Sampled frames: 900
-Average ROI count: 2.31
-```
+1. Prepare two crossing-case videos.
+2. Run both videos using ByteTrack.
+3. Repeat the tests using BoT-SORT.
+4. Keep inference settings consistent.
+5. Compare tracking behavior.
 
-These values depend entirely on the uploaded video, hardware, model settings, and tracking behavior.
+### Evaluation Criteria
 
-## 🔍 Crossing-Case Evaluation
+* Tracking-ID stability
+* ID switches
+* Duplicate events
+* Entry accuracy
+* Exit accuracy
+* ROI-count stability
+* Tracker performance
+* Effect of frame skipping
+* Effect of confidence thresholds
 
-A major Day 39 improvement is the evaluation of tracking consistency when people cross paths.
+### Evaluation Table
 
-For this evaluation:
+| Test            | Tracker   | Frame Skip | ID Stability       | Duplicate Events | Result |
+| --------------- | --------- | ---------: | ------------------ | ---------------- | ------ |
+| Crossing Case 1 | ByteTrack |          1 | Good / Fair / Poor | Yes / No         | Notes  |
+| Crossing Case 1 | BoT-SORT  |          1 | Good / Fair / Poor | Yes / No         | Notes  |
+| Crossing Case 2 | ByteTrack |          1 | Good / Fair / Poor | Yes / No         | Notes  |
+| Crossing Case 2 | BoT-SORT  |          1 | Good / Fair / Poor | Yes / No         | Notes  |
 
-1. Add two real videos to `sample_videos/`.
+This evaluation demonstrates how tracker selection can affect identity consistency in crowded scenes.
 
-2. Use the same settings for both videos.
+---
 
-3. Run the first video using ByteTrack.
+# Performance Optimization
 
-4. Record the tracking behavior.
+The system applies several practical optimization techniques.
 
-5. Run the second video using ByteTrack.
+### Lightweight Model
 
-6. Repeat both tests using BoT-SORT.
+YOLOv8n provides a useful balance between detection capability and inference speed.
 
-7. Compare the results.
+### Person-Only Detection
 
-Evaluate the following:
-
-* Do tracking IDs remain stable?
-
-* Are IDs switched when people cross?
-
-* Are duplicate `ENTRY` events generated?
-
-* Are `EXIT` events generated correctly?
-
-* Does the ROI count fluctuate unexpectedly?
-
-* Does one tracker perform better than the other?
-
-* Does changing the confidence threshold improve detection?
-
-* Does reducing frame skipping improve identity consistency?
-
-A simple evaluation table can be used:
-
-|
-Test Video
-
-|
-
-Tracker
-
-|
-
-Frame Skip
-
-|
-
-ID Stability
-
-|
-
-Duplicate Events
-
-|
-
-Overall Result
-
-|
-| --- | --- | --- | --- | --- | --- |
-|
-
-Crossing Case 1
-
-|
-
-ByteTrack
-
-|
-
-1
-
-|
-
-Good/Fair/Poor
-
-|
-
-Yes/No
-
-|
-
-Notes
-
-|
-|
-
-Crossing Case 1
-
-|
-
-BoT-SORT
-
-|
-
-1
-
-|
-
-Good/Fair/Poor
-
-|
-
-Yes/No
-
-|
-
-Notes
-
-|
-|
-
-Crossing Case 2
-
-|
-
-ByteTrack
-
-|
-
-1
-
-|
-
-Good/Fair/Poor
-
-|
-
-Yes/No
-
-|
-
-Notes
-
-|
-|
-
-Crossing Case 2
-
-|
-
-BoT-SORT
-
-|
-
-1
-
-|
-
-Good/Fair/Poor
-
-|
-
-Yes/No
-
-|
-
-Notes
-
-|
-
-## 🔧 Optimization Summary
-
-The main optimization techniques used in this project are:
-
-### Configurable Inference
-
-The user can change confidence, IoU, and image size without modifying the source code.
+Processing only the person class reduces unnecessary model output.
 
 ### Frame Skipping
 
-The application can process fewer frames to reduce computation time.
+Allows the application to trade temporal precision for processing speed.
 
-### Model Selection
+### Configurable Resolution
 
-YOLOv8n is used because it is lightweight and suitable for experimentation and demonstrations.
+Inference resolution can be adjusted according to available hardware and scene complexity.
 
 ### Tracker Selection
 
-The user can compare ByteTrack and BoT-SORT depending on the video scenario.
+ByteTrack and BoT-SORT provide alternative tracking strategies for different scenarios.
 
-### Person-Only Inference
+### Bounded Trail History
 
-The pipeline restricts inference to the person class, reducing unnecessary detections.
+Only a limited number of historical points are retained for each tracking ID.
 
-### Modular Design
+### Modular Architecture
 
-The Streamlit interface is separated from the processing logic.
-
-### Data-Type Normalization
-
-Event dataframe columns are explicitly converted to suitable data types. This helps prevent mixed-type dataframe errors during display or CSV generation.
-
-### Efficient Trail Storage
-
-Tracking trails use bounded deques so that the application does not store unlimited historical points.
-
-### Progress Feedback
-
-The application reports progress while processing videos.
+The interface and processing logic are separated into independent modules.
 
 ### Error Handling
 
-The application handles common failures, including:
+The application handles common problems such as:
 
-* Invalid image uploads
-
-* Unsupported video files
-
+* Invalid uploads
+* Unsupported files
 * Unreadable videos
+* Inference failures
+* Output-generation errors
+* Invalid processing inputs
 
-* Output-video creation failures
+---
 
-* Inference errors
+# Optional Remote Demonstration
 
-* Missing or invalid processing inputs
+For temporary demonstrations, the Streamlit application can be exposed using ngrok.
 
-## ⚠️ Limitations
+```powershell
+ngrok http 8501
+```
 
-This project is intended for educational, experimental, and demonstration purposes.
+If the application is running on port `8502`:
 
-Known limitations include:
+```powershell
+ngrok http 8502
+```
 
-1. Tracking IDs may change during severe occlusion.
+Only expose footage that is appropriate for public demonstration. Avoid using private or sensitive recordings.
 
-2. People crossing directly in front of one another may cause ID switches.
+---
 
+# Limitations
+
+The current system has several practical limitations:
+
+1. Severe occlusion can cause tracking-ID switches.
+2. People crossing directly in front of each other can reduce tracking consistency.
 3. Poor lighting can reduce detection quality.
-
 4. Very small people may be missed.
-
-5. Frame skipping may reduce event-timing precision.
-
-6. The current ROI implementation uses a rectangular region.
-
+5. Frame skipping can reduce event-timing precision.
+6. The current ROI implementation is rectangular.
 7. The system does not identify people by name.
+8. The system does not determine intent or suspicious behavior.
+9. Performance depends on available CPU/GPU resources.
+10. Video codec availability can vary between systems.
 
-8. The system does not perform facial recognition.
+The application should therefore be considered an **educational and experimental monitoring system**, not an autonomous security decision-making platform.
 
-9. The system does not determine intent or suspicious behavior.
+---
 
-10. The system should not be treated as a fully autonomous security decision-maker.
+# Privacy and Responsible Use
 
-11. Performance depends on the CPU, GPU, video resolution, and selected inference settings.
+This project processes visual information that may contain people.
 
-12. The generated MP4 codec may vary depending on the operating system and OpenCV installation.
+When working with real-world footage:
 
-## 🔐 Privacy and Responsible Use
-
-This project processes visual data that may contain people.
-
-When using real-world footage:
-
-* Obtain appropriate permission.
-
+* Obtain appropriate authorization.
 * Avoid uploading sensitive footage to public services.
-
 * Do not use the system for unauthorized surveillance.
-
-* Do not attempt to identify people by name.
-
+* Do not attempt to identify individuals by name.
 * Store generated reports securely.
-
 * Remove private footage before publishing the repository.
+* Prefer anonymized or consented footage for demonstrations.
 
-* Use anonymized or consented footage for demonstrations whenever possible.
+The system performs **person detection and temporary tracking**. It does not perform facial recognition or establish real-world identity.
 
-The system detects and tracks visible people; it does not establish identity, intent, or guilt.
+---
 
-## 📦 GitHub Submission Checklist
+# Future Improvements
 
-Before pushing the project to GitHub, verify the following:
+Potential future extensions include:
 
-* `app.py` is included.
+* Polygon-based ROI selection
+* Interactive ROI drawing
+* Multiple monitoring regions
+* Line-crossing detection
+* Restricted-zone alerts
+* Event deduplication
+* ID-switch counting
+* Occupancy-over-time charts
+* Movement heatmaps
+* Email and webhook notifications
+* Real-time camera input
+* GPU/CPU optimization
+* SQLite or PostgreSQL storage
+* Multi-camera monitoring
+* Docker deployment
+* Cloud deployment
+* Automated PDF reports
+* Improved occlusion handling
+* Custom-trained detection models
 
-* `security_monitoring.py` is included.
+---
 
-* `requirements.txt` is included.
+# GitHub Checklist
 
-* `README.md` is complete.
+Before publishing the project:
 
-* `test_day39.py` is included.
+* [ ] `app.py` included
+* [ ] `security_monitoring.py` included
+* [ ] `requirements.txt` included
+* [ ] `test_day39.py` included
+* [ ] `README.md` completed
+* [ ] `.gitignore` configured
+* [ ] `.streamlit/config.toml` included
+* [ ] Sample-video documentation included
+* [ ] Crossing-case evaluation completed
+* [ ] Screenshots added
+* [ ] Tests passing
+* [ ] No private footage committed
+* [ ] No `.venv` files committed
+* [ ] No unnecessary model weights committed
+* [ ] No unnecessary generated outputs committed
+* [ ] Application tested successfully
+* [ ] Demonstration video prepared
 
-* `.gitignore` is included.
+---
 
-* `.streamlit/config.toml` is included.
+# Demonstration Structure
 
-* `sample_videos/README.md` is included.
+For a professional project demonstration, the following sequence works well:
 
-* Two crossing-case videos were tested.
+### 01 | Introduction
 
-* Screenshots were added.
+Briefly explain the problem, objective, and main improvements.
 
-* The application runs successfully.
+### 02 | Architecture
 
-* The test file passes.
+Show the project structure and explain the detection, tracking, ROI, and event pipeline.
 
-* No private videos are committed.
-
-* No large model files are committed.
-
-* No temporary virtual-environment files are committed.
-
-* The GitHub repository link is added to the final submission.
-
-* A demo video is recorded.
-
-* A Streamlit or Hugging Face deployment link is added if available.
-
-## 📝 Suggested Git Commands
-
-From the parent directory containing `Day-39`:
-
-PowerShell
-
-```
-git add Day-39
-```
-
-Commit the project:
-
-PowerShell
-
-```
-git commit -m "Add Day 39 optimized security monitoring"
-```
-
-Push the changes:
-
-PowerShell
-
-```
-git push origin main
-```
-
-If your current branch is not `main`, check it first:
-
-PowerShell
-
-```
-git branch
-```
-
-## 🎥 Suggested Demo Video Structure
-
-For a 3–5 minute demonstration, use the following structure:
-
-### 1. Introduction — 20–30 seconds
-
-Explain:
-
-* The purpose of the project
-
-* How it improves Day 38
-
-* The main technologies used
-
-### 2. Project Structure — 20–30 seconds
-
-Briefly show:
-
-* `app.py`
-
-* `security_monitoring.py`
-
-* `requirements.txt`
-
-* `test_day39.py`
-
-* `sample_videos/`
-
-* `outputs/`
-
-### 3. Configuration Controls — 30–45 seconds
+### 03 | Configuration
 
 Demonstrate:
 
-* Confidence slider
-
-* IoU slider
-
-* Image-size selector
-
-* Frame-skip control
-
+* Confidence threshold
+* IoU threshold
+* Image size
+* Frame skipping
 * Tracker selection
-
 * Tracking trails
 
-### 4. Image Processing — 20–30 seconds
+### 04 | Image Detection
 
-Show:
+Show person detection on a sample image.
 
-* Image upload
+### 05 | Video Monitoring
 
-* Person detection
-
-* Processed image
-
-* Download button
-
-### 5. Video Processing — 60–90 seconds
-
-Show:
-
-* Video upload
+Demonstrate:
 
 * ROI monitoring
-
 * Tracking IDs
-
 * Tracking trails
+* Entry events
+* Exit events
+* Processing progress
+* Generated video
 
-* Active ROI count
-
-* Progress indicator
-
-* Processed video output
-
-### 6. Analytics and CSV — 30–45 seconds
+### 06 | Analytics
 
 Show:
 
 * Peak ROI count
-
-* Unique IDs
-
-* Entry count
-
-* Exit count
-
+* Unique tracking IDs
+* Entries
+* Exits
 * Average dwell time
-
+* Processing FPS
 * CSV report
 
-### 7. Crossing-Case Evaluation — 30–45 seconds
+### 07 | Tracker Evaluation
 
-Explain:
+Compare ByteTrack and BoT-SORT using crossing-case footage.
 
-* The purpose of the two crossing-case videos
+### 08 | Conclusion
 
-* The comparison between ByteTrack and BoT-SORT
+Summarize the performance, configurability, tracking, and analytics improvements.
 
-* Any observed ID switches or improvements
+---
 
-### 8. Conclusion — 15–20 seconds
+# Conclusion
 
-Summarize:
+**Day 39** transforms the previous security-monitoring prototype into a more structured, configurable, and analytics-oriented computer-vision application.
 
-* Performance improvements
+The system combines:
 
-* Better configurability
+**YOLOv8n**
 
-* Event-based reporting
+Person detection for image and video inputs.
 
-* Future improvement possibilities
+**ByteTrack and BoT-SORT**
 
-## 🔮 Future Improvements
+Persistent multi-object tracking.
 
-Potential future improvements include:
+**ROI Monitoring**
 
-* Polygon-based ROI selection
+Focused analysis of defined areas.
 
-* Interactive ROI drawing directly on the first video frame
+**Event Detection**
 
-* Multiple ROIs
+Automatic entry and exit tracking.
 
-* Line-crossing detection
+**Dwell-Time Analysis**
 
-* Restricted-zone alerts
+Measurement of time spent inside monitored regions.
 
-* Email or webhook notifications
+**Performance Controls**
 
-* Real-time camera support
+Configurable confidence, IoU, resolution, and frame skipping.
 
-* GPU/CPU performance selection
+**Analytics**
 
-* Automatic tracker-quality evaluation
+Occupancy, tracking, performance, and event statistics.
 
-* ID-switch counting
+**Reporting**
 
-* Event deduplication using temporal debouncing
+Structured CSV event generation.
 
-* Heatmap generation
+**Streamlit**
 
-* Occupancy-over-time charts
+An interactive interface for running and reviewing the system.
 
-* SQLite or PostgreSQL event storage
+The project demonstrates a practical progression from object detection toward a complete computer-vision monitoring workflow with configurable inference, persistent tracking, event-based analytics, and systematic tracker evaluation.
 
-* Multi-camera monitoring
+---
 
-* Docker deployment
+## Author
 
-* Cloud deployment
+**Hadeed Jalani**
 
-* Automatic PDF report generation
+Computer Vision • Artificial Intelligence • Machine Learning • Python
 
-* Improved handling of occlusion and crowded scenes
-
-* Custom-trained models for specific environments
-
-## 🏁 Conclusion
-
-Day 39 transforms the Day 38 security-monitoring prototype into a more configurable and evaluation-oriented computer-vision application.
-
-The updated system combines:
-
-* YOLOv8 person detection
-
-* Persistent object tracking
-
-* ROI-based monitoring
-
-* Entry and exit event detection
-
-* Dwell-time analysis
-
-* Tracking trails
-
-* Adjustable inference parameters
-
-* Frame-skip optimization
-
-* CSV event reporting
-
-* Processed-video generation
-
-* Streamlit-based interaction
-
-* Automated utility tests
-
-The project demonstrates how a basic detection pipeline can be developed into a more structured security-monitoring system with better performance controls, clearer analytics, and more useful outputs.
+---
